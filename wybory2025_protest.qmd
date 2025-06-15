@@ -13,6 +13,7 @@ library("ggeffects")
 library("mgcv")
 library("car")
 library("broom")
+source("wczytaj_dane.R")
 
 theme_set(ggpubr::theme_pubr(base_size = 18))
 set.seed(42)
@@ -20,149 +21,232 @@ okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
   "#CC79A7", "#999999", "#000000")
 ```
 
-## 2020
+* Błędna interpretacja p-wartości jako prawdop. Nie uwzględnia prawdop. założenia, że stosuje się rozkład Benforda
+* Nawrocki wygrywa w mniejszych komisjach, więc tam będą większe liczby (1000), czyli 1 przodu? Dla Dudy było tak samo. Ale w 1. turze było ok (bo mniej głosów i rzadziej 4-cyfrowy wynik)
+* W ten sposób ciężko wykryć anomalie, raczej systematyczne błędy.
+* Co więcej, ponieważ uzasadnia się, że te odbieganie jest m. in. przez dopisanie drugiego X, to w takim razie rozkład dla Trzaskowskiego nie powinien się zgadzać, bo przy liczbie głosów dla niego majstrowano
+
+## Rozkład Benforda
+
+W proteście powołano się między innymi na rozkład Benforda. Przy pewnych założeniach, rozkład częstości występowania pierwszych cyfr rozkłada się w pewien określony sposób: cyfra 1 występuje w około 30,1% przypadkach, cyfra 2 17,6% itd. Najważniejsza założenia: liczby mają wiele rzędów wielkości (setki, tysiące, miliony itd.) oraz powstają w pewnym naturalnym procesie (nie są sztucznie ograniczone). Przykłady to długości rzek, rozmiary populacji zamieszkujących jakiś teren czy stałe fizyczne.
+
+## Liczba uprawnionych
+
+Aby porównanie z rozkładem Benforda miało sens, trzeba najpierw uzasadnić (co jest trudne), że mamy do czynienia z liczbami, które powinny się w ten sposób rozkładać. Nie znajduję dobrego uzasadnienia w przypadku liczby głosów oddanych w każdej komisji na danego kandydata. Przeciwnie: wielkość komisji jest zaplanowany, tak aby nie była ani za duża, ani za mała. Liczba uprawnionych do głosowania to 55,9% przypadków liczba 3-cyfrowa, a w 40,5% liczba 4-cyfrowa, czyli w zasadzie mamy tylko dwa rzędy wielkości. Dodatkowo liczby 4-cyfrowe są w prawie 90% przypadków z przedziału 1000-1999, stąd można się spodziewać nadreprezentacji cyfry 1.
 
 ```{r}
-# 1. tura
+#| include: false
 
-wyb20_obw1 <- read_csv2("data/2020/wyniki_gl_na_kand_po_obwodach_1tura.csv",
-  na = c("", "-"))
-names(wyb20_obw1)[c(13, 29, 30, 31, 33)] <- 
-  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_1")
-names(wyb20_obw1)[34:44] <- paste0(c("Biedroń", "Bosak", "Duda", "Hołownia", "Jakubiak",
-  "Kamysz", "Piotrowski", "Tanajno", "Trzaskowski", "Witkowski", "Żółtek"), "_1") 
+wyb25 %>% 
+  filter(Nupr_2 > 0) %>% 
+  mutate(Liczba_cyfr = str_length(Nupr_2)) %>% 
+  count(Liczba_cyfr) %>% 
+  mutate(n / sum(n) * 100)
 
-wyb20_obw1 <- wyb20_obw1 %>% 
-  rename(Kod = `Kod TERYT`, Komisja = `Numer obwodu`) %>% 
-  select(Kod, Komisja, Gmina, Powiat, Województwo, `Typ obszaru`:Siedziba,
-    Nupr_1, N_1, Nniew_1, Nniew2x_1, Nniew0x_1, Biedroń_1:Żółtek_1) %>% 
-  mutate(Kod = as.character(Kod)) %>% 
-  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
+wyb25 %>% 
+  filter(Nupr_2 > 0) %>% 
+  mutate(Liczba_cyfr = str_length(Nupr_2)) %>% 
+  filter(Liczba_cyfr == 4) %>% 
+  summarise(mean(Nupr_2 < 2000))
 
-# 2. tura
-
-wyb20_obw2 <- read_csv2("data/2020/wyniki_gl_na_kand_po_obwodach_2tura.csv",
-  na = c("", "-"))
-names(wyb20_obw2)[c(13, 29, 30, 31, 33)] <- 
-  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_2")
-names(wyb20_obw2)[34:35] <- paste0(c("Duda", "Trzaskowski"), "_2") 
-
-wyb20_obw2 <- wyb20_obw2 %>% 
-  rename(Kod = `Kod TERYT`, Komisja = `Numer obwodu`) %>% 
-  select(Kod, Komisja, Nupr_2, N_2, Nniew_2, Nniew2x_2, Nniew0x_2, 
-    Duda_2, Trzaskowski_2) %>% 
-  mutate(Kod = as.character(Kod)) %>% 
-  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
-
-wyb20 <- full_join(wyb20_obw1, wyb20_obw2) %>% 
-  mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
-  rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
+wyb25 %>% 
+  filter(N_2 > 0) %>% 
+  pivot_longer(c(Nawrocki_2, Trzaskowski_2), names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  count(Liczba_cyfr) %>% 
+  mutate(n / sum(n) * 100)
 ```
 
-## 2025
+Na poniższym wykresie porównanie z rozkładem Benforda dla liczby uprawnionych. Zgodnie z przewidywaniami, rozkład ten nie ma tutaj zastosowania. Stąd moim zdaniem nie powinniśmy się spodziewać, że mając tylko dwóch kandydatów, liczba głosów --- które jest silnie skorelowana z liczbą uprawnionych --- już będzie miała taki rozkład (choć nie jest to wykluczone).
 
 ```{r}
-# 1. tura
-
-wyb25_obw1 <- read_csv2("data/protokoly_po_obwodach_utf8.csv")
-names(wyb25_obw1)[c(11, 28, 29, 30, 32)] <- 
-  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_1")
-names(wyb25_obw1)[33:45] <- paste0(c("Bartoszewicz", "Biejat", "Braun", "Hołownia",
-  "Jakubiak", "Maciak", "Mentzen", "Nawrocki", "Senyszyn", "Stanowski", "Trzaskowski",
-  "Woch", "Zandberg"), "_1") 
-
-wyb25_obw1 <- wyb25_obw1 %>% 
-  rename(Kod = `Teryt Gminy`, Komisja = `Nr komisji`) %>% 
-  select(Kod, Komisja, Gmina, Powiat, Województwo:`Typ obszaru`, Nupr_1, N_1, Nniew_1,
-    Nniew2x_1, Nniew0x_1, Bartoszewicz_1:Zandberg_1) %>% 
-  mutate(Kod = as.character(Kod)) %>% 
-  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
-
-# 2. tura
-
-wyb25_obw2 <- read_csv2("data/protokoly_po_obwodach_w_drugiej_turze_utf8.csv")
-names(wyb25_obw2)[c(11, 28, 29, 30, 31)] <- 
-  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_2")
-names(wyb25_obw2)[32:33] <- paste0(c("Nawrocki","Trzaskowski"), "_2") 
-
-wyb25_obw2 <- wyb25_obw2 %>% 
-  rename(Kod = `Teryt Gminy`, Komisja = `Nr komisji`) %>% 
-  select(Kod, Komisja, Nupr_2, N_2, Nniew_2, Nniew2x_2, Nniew0x_2,
-    Nawrocki_2, Trzaskowski_2) %>% 
-  mutate(Kod = as.character(Kod)) %>% 
-  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
-
-wyb25 <- full_join(wyb25_obw1, wyb25_obw2) %>% 
-  mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
-  rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
+wyb25 %>% 
+  filter(Nupr_2 > 0) %>% 
+  benford1("Nupr_2", "Liczba uprawnionych do głosowania, 2. tura 2025")
 ```
 
-## Benford
+Istnieje rozszerzenie prawa Benforda na inne cyfry niż pierwsza. Poniżej porównanie drugiej cyfry dla liczby uprawnionych z rozkładem Benforda (jest on inny, niż w przypadku pierwsze cyfry).
 
 ```{r}
-benford_df <- tibble(
-  dig = as.character(0:9),
-  benford1 = c(0, log10(1 + 1 / (1:9))),
-  benford2 = c(0.11968, 0.11389, 0.10882, 0.10433, 0.10031, 0.09668,
-    0.09337, 0.09035, 0.08757, 0.08495)
-)
-benford1 <- function(df, var, title = "") {
-  df %>% 
-    rename(N = all_of(var)) %>% 
-    filter(N > 0) %>% 
-    mutate(N = str_sub(N, 1, 1)) %>% 
-    count(N) %>% 
-    mutate(zaobserwowane = n / sum(n)) %>% 
-    left_join(benford_df, by = c("N" = "dig")) %>% 
-    rename(Benford = benford1) %>% 
-    pivot_longer(c(zaobserwowane, Benford), names_to = "źródło", values_to = "proporcja") %>% 
-    mutate(źródło = fct_relevel(źródło, "Zaobserwowane")) %>% 
-    ggplot(aes(N, proporcja, fill = źródło)) +
-    geom_col(position = "dodge") +
-    labs(x = "1. cyfra", y = "Częstotliwość", title = title, fill = "") +
-    theme(
-      axis.line = element_blank(),
-      axis.ticks = element_blank(),
-      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.5)
-    ) +
-    scale_fill_manual(values = c("#1d3876", "#db701c")) +
-    scale_y_continuous(labels = percent_format())
-}
-benford2 <- function(df, var, title = "") {
-  df %>% 
-    rename(N = all_of(var)) %>% 
-    filter(N >= 10) %>% 
-    mutate(N = str_sub(N, 2, 2)) %>% 
-    count(N) %>% 
-    mutate(zaobserwowane = n / sum(n)) %>% 
-    left_join(benford_df, by = c("N" = "dig")) %>% 
-    pivot_longer(c(zaobserwowane, benford2), names_to = "źródło", values_to = "proporcja") %>% 
-    mutate(źródło = fct_relevel(źródło, "zaobserwowane")) %>% 
-    ggplot(aes(N, proporcja, fill = źródło)) +
-    geom_col(position = "dodge") +
-    labs(x = "Cyfra", y = "Częstotliwość", title = title, fill = "")
-}
+wyb25 %>% 
+  filter(Nupr_2 > 0) %>% 
+  benford2("Nupr_2", "Liczba uprawnionych do głosowania, 2. tura 2025", breaks = 0.02)
+```
+
+```{r}
+#| include: false
+
+n_dane <- wyb25 %>% 
+  filter(Nupr_2 > 10) %>% 
+  mutate(Nupr_2 = str_sub(Nupr_2, 2, 2)) %>% 
+  count(Nupr_2) %>% 
+  pull(n)
+prop_benf <- benford_df$benford2 / sum(benford_df$benford2) # nie sumuje się do 1
+chisq.test(x = n_dane, p = prop_benf)
+```
+
+Zgodność jest duża, choć nie idealna. Różnica między rozkładem Benforda a danymi jest istotna statystycznie (statystyka chi-kwadrat = 67,1).
+
+## Liczba głosów
+
+Mimo powyższych wątpliwości (które moim zdaniem są wystarczające), przejdźmy do analizy liczby głosów. Poniżej rozkład dla pierwszej cyfry dla Nawrockiego w 2. turze. To ten wykres pojawia się w proteście wyborczym.
+
+```{r}
+benford1(wyb25, "Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025", limit = 0.33)
+```
+
+Odstępstwo jest bardzo duże, co ma świadczyć o tym, że "manipulacje dotyczyły wyników tego kandydata" (cytat z protestu). Porównajmy z liczbą głosów na Trzaskowskiego.
+
+```{r}
+benford1(wyb25, "Trzaskowski_2", "Liczba głosów, Trzaskowski, 2. tura 2025", limit = 0.33)
+```
 
 
-benford1(wyb25, "Trzaskowski_1", "Trzaskowski, 1. tura")
-benford1(wyb25, "Trzaskowski_2", "Trzaskowski, 2. tura")
-benford1(wyb25, "Nawrocki_1", "Nawrocki, 1. tura")
-benford1(wyb25, "Nawrocki_2", "Nawrocki, 2. tura")
-# Nawrocki wygrywa w mniejszych komisjach, stąd taka zależność -- dla Dudy było tak samo
+```{r}
+benford1(wyb20, "Duda_2", "Liczba głosów, Duda, 2. tura 2020", limit = 0.33)
+```
+
+Jeśli brak zgodności z rozkładem Benforda miałby świadczyć o manipulacjach, to wygląda na to, że w poprzednich wyborach były znacznie większe.
+
+
+Natomiast w przypadku Trzaskowskiego również występują spore odchyłki.
+
+Podsumowując, liczba głosów rzeczywiście znacznie odbiega od rozkładu Benforda. Ale powodem jest to, że w ogóle nie powinna się tak rozkładać.
+
+
+```{r}
+wyb25 %>% 
+  pivot_longer(c(Nawrocki_2, Trzaskowski_2),
+    names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  count(Kto, Liczba_cyfr) %>% 
+  pivot_wider(names_from = Kto, values_from = n) %>% 
+  mutate(across(c(Nawrocki_2, Trzaskowski_2), ~ . / sum(.) * 100))
+
+wyb20 %>% 
+  pivot_longer(c(Duda_2, Trzaskowski_2),
+    names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  count(Kto, Liczba_cyfr) %>% 
+  pivot_wider(names_from = Kto, values_from = n, values_fill = 0) %>% 
+  mutate(across(c(Duda_2, Trzaskowski_2), ~ . / sum(.) * 100))
+```
+
+
+
+
+
+Oczywiście są mniejsze i później spróbujemy odpowiedzieć na pytanie dlaczego, póki co tylko zastanówmy się, w jaki sposób wyniki Nawrockiego miałyby oszukane
+
+
+Dlaczego mniejsza odchyłka? Liczba 4-cyfr
+
+
+
+```{r}
+benford1(wyb25, "Trzaskowski_1", "Liczba głosów, Trzaskowski, 1. tura 2025", limit = 0.36)
+
+
+
+
+benford1(wyb25, "Nawrocki_1", "Liczba głosów, Nawrocki, 1. tura 2025", limit = 0.36)
+
 
 # A jak było w 2020?
-benford1(wyb20, "Trzaskowski_1", "Trzaskowski, 1. tura")
-benford1(wyb20, "Trzaskowski_2", "Trzaskowski, 2. tura")
-benford1(wyb20, "Duda_1", "Duda, 1. tura")
-benford1(wyb20, "Duda_2", "Duda, 2. tura")
+benford1(wyb20, "Trzaskowski_1", "Liczba głosów, Trzaskowski, 1. tura 2020")
+benford1(wyb20, "Trzaskowski_2", "Liczba głosów, Trzaskowski, 1. tura 2020")
+benford1(wyb20, "Duda_1", "Liczba głosów, Duda, 1. tura 2020")
 
-benford2(wyb25, "Trzaskowski_1", "Trzaskowski, 1. tura")
-benford2(wyb25, "Trzaskowski_2", "Trzaskowski, 2. tura")
-benford2(wyb25, "Nawrocki_1", "Nawrocki, 1. tura")
-benford2(wyb25, "Nawrocki_2", "Nawrocki, 2. tura")
+
+
+benford2(wyb25, "Trzaskowski_1", "Liczba głosów, Trzaskowski, 1. tura 2025")
+benford2(wyb25, "Trzaskowski_2", "Liczba głosów, Trzaskowski, 2. tura 2025")
+benford2(wyb25, "Nawrocki_1", "Liczba głosów, Nawrocki, 1. tura 2025")
+benford2(wyb25, "Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025")
 # A jak było w 2020?
-benford2(wyb20, "Trzaskowski_1", "Trzaskowski, 1. tura")
-benford2(wyb20, "Trzaskowski_2", "Trzaskowski, 2. tura")
-benford2(wyb20, "Duda_1", "Duda, 1. tura")
-benford2(wyb20, "Duda_2", "Duda, 2. tura")
+benford2(wyb20, "Trzaskowski_1", "Liczba głosów, Trzaskowski, 1. tura 2020")
+benford2(wyb20, "Trzaskowski_2", "Liczba głosów, Trzaskowski, 2. tura 2020")
+benford2(wyb20, "Duda_1", "Liczba głosów, Duda, 1. tura 2020")
+benford2(wyb20, "Duda_2", "Liczba głosów, Duda, 1. tura 2020")
 ```
+
+Oszustwa w 2020 musiałyby być w większości komisji, żeby dostać aż tak duże odstępstwo. I właśnie tylko to można sprawdzić Benfordem, a nie anomalie.
+
+
+Podział na wygraną
+
+Czy Nawrocki wygrywa w mniejszych komisjach?
+
+```{r}
+ggplot(wyb25, aes(Nawrocki_2, ))
+```
+
+
+```{r}
+wyb25 %>% 
+  pivot_longer(c(Nawrocki_1, Nawrocki_2, Trzaskowski_1, Trzaskowski_2),
+    names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  count(Kto, Liczba_cyfr) %>% 
+  pivot_wider(names_from = Kto, values_from = n)
+
+wyb20 %>% 
+  pivot_longer(c(Duda_1, Duda_2, Trzaskowski_1, Trzaskowski_2),
+    names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  count(Kto, Liczba_cyfr) %>% 
+  pivot_wider(names_from = Kto, values_from = n)
+```
+
+Dlaczego zbyt mało jedynek dla Nawrockiego?
+
+```{r}
+wyb25 %>% 
+  pivot_longer(c(Nawrocki_2, Trzaskowski_2),
+    names_to = "Kto", values_to = "N") %>% 
+  mutate(Liczba_cyfr = str_length(N)) %>% 
+  filter(Liczba_cyfr == 4) %>% 
+  mutate(Pierwsza_cyfra = str_sub(N, 1, 1)) %>% 
+  count(Kto, Pierwsza_cyfra) %>% 
+  pivot_wider(names_from = Kto, values_from = n, values_fill = 0)
+```
+
+```{r}
+wyb25 %>% 
+  filter(Nawrocki_2 > 0) %>% 
+  mutate(Nawrocki_2 = str_sub(Nawrocki_2, 1, 1)) %>% 
+  count(Nawrocki_2) %>% 
+  left_join(benford_df, by = c("Nawrocki_2" = "dig")) %>% 
+  mutate(Benford = round(sum(n) * benford1)) %>% 
+  select(`Pierwsza cyfra` = Nawrocki_2, Dane = n, Benford) %>% 
+  mutate(Różnica = Dane - Benford)
+```
+
+Czy jest problem też tam, gdzie Nawrocki przegrał?
+
+```{r}
+wyb25 %>% 
+  filter(Nawrocki_2 < Trzaskowski_2) %>% 
+  benford1("Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025")
+```
+
+```{r}
+wyb25 %>% 
+  filter(Nawrocki_2 > Trzaskowski_2) %>% 
+  benford1("Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025")
+```
+
+```{r}
+wyb25 %>% 
+  filter(Nawrocki_2 < Trzaskowski_2) %>% 
+  benford1("Trzaskowski_2", "Liczba głosów, Nawrocki, 2. tura 2025")
+``` 
+
+Najgorzej tam, gdzie Trzaskowski wygrał!
+
+```{r}
+wyb25 %>% 
+  filter(Nawrocki_2 > Trzaskowski_2) %>% 
+  benford1("Trzaskowski_2", "Liczba głosów, Nawrocki, 2. tura 2025")
+``` 
+
