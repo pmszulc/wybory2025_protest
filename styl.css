@@ -1,0 +1,21 @@
+#footnotes h2 {
+  content: "Przypisy";
+  visibility: hidden;
+  position: relative;
+}
+
+#footnotes h2::before {
+  content: "Przypisy";
+  visibility: visible;
+  position: absolute;
+}
+
+.table caption {
+    color: grey;
+    font-size: 12pt;
+}
+
+.figure figcaption {
+    text-align: center;
+    font-size: 12pt !important;
+}
