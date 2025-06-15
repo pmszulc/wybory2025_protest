@@ -1,0 +1,168 @@
+---
+title: "Wybory 2025"
+format: 
+   html:
+     self-contained: true
+---
+
+```{r, include=FALSE}
+library("skimr")
+library("tidyverse")
+library("scales")
+library("ggeffects") 
+library("mgcv")
+library("car")
+library("broom")
+
+theme_set(ggpubr::theme_pubr(base_size = 18))
+set.seed(42)
+okabe <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
+  "#CC79A7", "#999999", "#000000")
+```
+
+## 2020
+
+```{r}
+# 1. tura
+
+wyb20_obw1 <- read_csv2("data/2020/wyniki_gl_na_kand_po_obwodach_1tura.csv",
+  na = c("", "-"))
+names(wyb20_obw1)[c(13, 29, 30, 31, 33)] <- 
+  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_1")
+names(wyb20_obw1)[34:44] <- paste0(c("Biedroń", "Bosak", "Duda", "Hołownia", "Jakubiak",
+  "Kamysz", "Piotrowski", "Tanajno", "Trzaskowski", "Witkowski", "Żółtek"), "_1") 
+
+wyb20_obw1 <- wyb20_obw1 %>% 
+  rename(Kod = `Kod TERYT`, Komisja = `Numer obwodu`) %>% 
+  select(Kod, Komisja, Gmina, Powiat, Województwo, `Typ obszaru`:Siedziba,
+    Nupr_1, N_1, Nniew_1, Nniew2x_1, Nniew0x_1, Biedroń_1:Żółtek_1) %>% 
+  mutate(Kod = as.character(Kod)) %>% 
+  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
+
+# 2. tura
+
+wyb20_obw2 <- read_csv2("data/2020/wyniki_gl_na_kand_po_obwodach_2tura.csv",
+  na = c("", "-"))
+names(wyb20_obw2)[c(13, 29, 30, 31, 33)] <- 
+  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_2")
+names(wyb20_obw2)[34:35] <- paste0(c("Duda", "Trzaskowski"), "_2") 
+
+wyb20_obw2 <- wyb20_obw2 %>% 
+  rename(Kod = `Kod TERYT`, Komisja = `Numer obwodu`) %>% 
+  select(Kod, Komisja, Nupr_2, N_2, Nniew_2, Nniew2x_2, Nniew0x_2, 
+    Duda_2, Trzaskowski_2) %>% 
+  mutate(Kod = as.character(Kod)) %>% 
+  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
+
+wyb20 <- full_join(wyb20_obw1, wyb20_obw2) %>% 
+  mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
+  rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
+```
+
+## 2025
+
+```{r}
+# 1. tura
+
+wyb25_obw1 <- read_csv2("data/protokoly_po_obwodach_utf8.csv")
+names(wyb25_obw1)[c(11, 28, 29, 30, 32)] <- 
+  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_1")
+names(wyb25_obw1)[33:45] <- paste0(c("Bartoszewicz", "Biejat", "Braun", "Hołownia",
+  "Jakubiak", "Maciak", "Mentzen", "Nawrocki", "Senyszyn", "Stanowski", "Trzaskowski",
+  "Woch", "Zandberg"), "_1") 
+
+wyb25_obw1 <- wyb25_obw1 %>% 
+  rename(Kod = `Teryt Gminy`, Komisja = `Nr komisji`) %>% 
+  select(Kod, Komisja, Gmina, Powiat, Województwo:`Typ obszaru`, Nupr_1, N_1, Nniew_1,
+    Nniew2x_1, Nniew0x_1, Bartoszewicz_1:Zandberg_1) %>% 
+  mutate(Kod = as.character(Kod)) %>% 
+  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
+
+# 2. tura
+
+wyb25_obw2 <- read_csv2("data/protokoly_po_obwodach_w_drugiej_turze_utf8.csv")
+names(wyb25_obw2)[c(11, 28, 29, 30, 31)] <- 
+  paste0(c("Nupr", "Nniew", "Nniew2x", "Nniew0x", "N"), "_2")
+names(wyb25_obw2)[32:33] <- paste0(c("Nawrocki","Trzaskowski"), "_2") 
+
+wyb25_obw2 <- wyb25_obw2 %>% 
+  rename(Kod = `Teryt Gminy`, Komisja = `Nr komisji`) %>% 
+  select(Kod, Komisja, Nupr_2, N_2, Nniew_2, Nniew2x_2, Nniew0x_2,
+    Nawrocki_2, Trzaskowski_2) %>% 
+  mutate(Kod = as.character(Kod)) %>% 
+  mutate(Kod = ifelse(str_length(Kod) == 5, paste0("0", Kod), Kod))
+
+wyb25 <- full_join(wyb25_obw1, wyb25_obw2) %>% 
+  mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
+  rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
+```
+
+## Benford
+
+```{r}
+benford_df <- tibble(
+  dig = as.character(0:9),
+  benford1 = c(0, log10(1 + 1 / (1:9))),
+  benford2 = c(0.11968, 0.11389, 0.10882, 0.10433, 0.10031, 0.09668,
+    0.09337, 0.09035, 0.08757, 0.08495)
+)
+benford1 <- function(df, var, title = "") {
+  df %>% 
+    rename(N = all_of(var)) %>% 
+    filter(N > 0) %>% 
+    mutate(N = str_sub(N, 1, 1)) %>% 
+    count(N) %>% 
+    mutate(zaobserwowane = n / sum(n)) %>% 
+    left_join(benford_df, by = c("N" = "dig")) %>% 
+    rename(Benford = benford1) %>% 
+    pivot_longer(c(zaobserwowane, Benford), names_to = "źródło", values_to = "proporcja") %>% 
+    mutate(źródło = fct_relevel(źródło, "Zaobserwowane")) %>% 
+    ggplot(aes(N, proporcja, fill = źródło)) +
+    geom_col(position = "dodge") +
+    labs(x = "1. cyfra", y = "Częstotliwość", title = title, fill = "") +
+    theme(
+      axis.line = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid.major.y = element_line(color = "gray90", linewidth = 0.5)
+    ) +
+    scale_fill_manual(values = c("#1d3876", "#db701c")) +
+    scale_y_continuous(labels = percent_format())
+}
+benford2 <- function(df, var, title = "") {
+  df %>% 
+    rename(N = all_of(var)) %>% 
+    filter(N >= 10) %>% 
+    mutate(N = str_sub(N, 2, 2)) %>% 
+    count(N) %>% 
+    mutate(zaobserwowane = n / sum(n)) %>% 
+    left_join(benford_df, by = c("N" = "dig")) %>% 
+    pivot_longer(c(zaobserwowane, benford2), names_to = "źródło", values_to = "proporcja") %>% 
+    mutate(źródło = fct_relevel(źródło, "zaobserwowane")) %>% 
+    ggplot(aes(N, proporcja, fill = źródło)) +
+    geom_col(position = "dodge") +
+    labs(x = "Cyfra", y = "Częstotliwość", title = title, fill = "")
+}
+
+
+benford1(wyb25, "Trzaskowski_1", "Trzaskowski, 1. tura")
+benford1(wyb25, "Trzaskowski_2", "Trzaskowski, 2. tura")
+benford1(wyb25, "Nawrocki_1", "Nawrocki, 1. tura")
+benford1(wyb25, "Nawrocki_2", "Nawrocki, 2. tura")
+# Nawrocki wygrywa w mniejszych komisjach, stąd taka zależność -- dla Dudy było tak samo
+
+# A jak było w 2020?
+benford1(wyb20, "Trzaskowski_1", "Trzaskowski, 1. tura")
+benford1(wyb20, "Trzaskowski_2", "Trzaskowski, 2. tura")
+benford1(wyb20, "Duda_1", "Duda, 1. tura")
+benford1(wyb20, "Duda_2", "Duda, 2. tura")
+
+benford2(wyb25, "Trzaskowski_1", "Trzaskowski, 1. tura")
+benford2(wyb25, "Trzaskowski_2", "Trzaskowski, 2. tura")
+benford2(wyb25, "Nawrocki_1", "Nawrocki, 1. tura")
+benford2(wyb25, "Nawrocki_2", "Nawrocki, 2. tura")
+# A jak było w 2020?
+benford2(wyb20, "Trzaskowski_1", "Trzaskowski, 1. tura")
+benford2(wyb20, "Trzaskowski_2", "Trzaskowski, 2. tura")
+benford2(wyb20, "Duda_1", "Duda, 1. tura")
+benford2(wyb20, "Duda_2", "Duda, 2. tura")
+```
