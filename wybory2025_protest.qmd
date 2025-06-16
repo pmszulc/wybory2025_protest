@@ -1,5 +1,5 @@
 ---
-title: "Rozkład Benforda jako dowód manipulacji w wyborach prezydenckich 2025"
+title: "Analiza dowodów manipulacji w wyborach prezydenckich 2025"
 author: "Piotr Szulc"
 format: 
    html:
@@ -25,7 +25,7 @@ source("funkcje.R")
 theme_set(ggpubr::theme_pubr(base_size = 16))
 ```
 
-Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, póki co analizuję jedynie wykorzystanie rozkładu Benforda.
+Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, póki co analizuję wykorzystanie rozkładu Benforda oraz tzw. "ruski ogon" Kolejne analizy zostaną dodane wkrótce.
 
 ## Rozkład Benforda
 
@@ -36,7 +36,9 @@ Przy pewnych założeniach, częstość występowania pierwszych cyfr w liczbach
 
 Przykłady to długości rzek, rozmiary populacji zamieszkujących określony teren czy stałe fizyczne.
 
-## Liczba uprawnionych
+Według autorów protestu, fakt, że dane wyborcze nie są zgodne z tym rozkładem, ma być „silną przesłanką manipulacji”. Jak pokażę, nie tylko nie jest to silna przesłanka, ale powołanie się na ten rozkład jest błędem.
+
+### Liczba uprawnionych
 
 Aby porównanie z rozkładem Benforda miało sens, trzeba najpierw uzasadnić, że mamy do czynienia z liczbami, które powinny się w ten sposób rozkładać. Nie znajduję dobrego uzasadnienia w przypadku liczby głosów oddanych w każdej komisji na danego kandydata. Przeciwnie: liczba głosów silnie koreluje z liczbą uprawnionych, a wielkość komisji jest tak "zaprojektowana", aby nie była ani za duża, ani za mała. Z danych PKW wynika, że liczba uprawnionych do głosowania to w 55,9% przypadków liczba 3-cyfrowa, a w 40,5% liczba 4-cyfrowa, czyli mamy dwa rzędy wielkości. Dodatkowo liczby 4-cyfrowe są w prawie 90% przypadków z przedziału 1000-1999, stąd można się spodziewać nadreprezentacji cyfry 1.
 
@@ -71,7 +73,7 @@ wyb25 %>%
   benford1("Nupr_2", "Liczba uprawnionych do głosowania, 2. tura 2025", limit = NA)
 ```
 
-## Liczba głosów
+### Liczba głosów
 
 Mimo powyższych wątpliwości (które moim zdaniem są wystarczające), przejdźmy do analizy liczby głosów. Poniżej rozkład pierwszej cyfry dla Nawrockiego w 2. turze. To ten wykres pojawia się w proteście wyborczym.
 
@@ -123,16 +125,110 @@ cyfry20 %>%
 
 Jak podano wcześniej, 4-cyfrowa liczba uprawnionych to były głównie liczby 1000-1999, w takim razie liczba głosów na kandydata bardzo rzadko jest liczbą 4-cyfrową. W przypadku Dudy w aż 92% mamy tylko liczby 3-cyfrowe (stąd rozkład w ogóle nie przypomina Benforda), dla Nawrockiego w 10% przypadków występują też liczby 2-cyfrowe, a dla Trzaskowskiego w 29% --- stąd rozkład dla niego najbardziej przypomina Benforda. Dodajmy, że te różnice wynikają stąd, że Duda i Nawrocki wygrywali głównie w mniejszych komisjach (na wsi).
 
-## Podsumowanie
+Podsumowując, liczba głosów rzeczywiście znacznie odbiega od rozkładu Benforda. Powodem jest to, że w ogóle nie powinna tak się rozkładać.
 
-Liczba głosów rzeczywiście znacznie odbiega od rozkładu Benforda. Powodem jest to, że w ogóle nie powinna tak się rozkładać.
+## Ruski ogon
 
-## Źródła
+```{r}
+wyb25 <- wyb25 %>% 
+  mutate(Frekwencja_1 = N_1 / Nupr_1 * 100) %>% 
+  mutate(Frekwencja_2 = N_2 / Nupr_2 * 100) %>% 
+  mutate(Frekwencja_1_zaokr = round(Frekwencja_1)) %>% 
+  mutate(Frekwencja_2_zaokr = round(Frekwencja_2))
+```
+
+Poniższy wykres prezentuje rozkład frekwencji w drugiej turze: w ilu komisjach odnotowano daną frekwencję, po zaokrągleniu do jednego procentu. W większości komisji zagłosowało od 60% do 80% uprawnionych.
+
+```{r}
+wyb25 %>% 
+  count(Frekwencja_2_zaokr) %>% 
+  ggplot(aes(Frekwencja_2_zaokr, n)) +
+  geom_point(alpha = 0.8) +
+  geom_line()  +
+  labs(x = "Frekwencja, 2. tura", y = "Liczba komisji") +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5)
+  ) +
+  scale_x_continuous(labels = percent_format(scale = 1), 
+    breaks = seq(0, 100, by = 20)) +
+  scale_y_continuous(limits = c(0, NA))
+```
+
+Według autorów protestu wyborczego, na tym wykresie ma być widać tzw. "ruski ogon", czyli nadwyżkę komisji z bardzo wysoką frekwencją, bliską 100%. Ma być to "sygnałem możliwych korekt kart lub innych anomalii w procesie wyborczym".
+
+Przybliżmy wykres, skupiając się na jego prawym ogonie (frekwencja co najmniej 90%).
+
+```{r}
+wyb25 %>% 
+  count(Frekwencja_2_zaokr) %>% 
+  filter(Frekwencja_2_zaokr >= 90) %>% 
+  ggplot(aes(Frekwencja_2_zaokr, n)) +
+  geom_point(size = 2.6, alpha = 0.8) +
+  geom_line(linewidth = 1.3)  +
+  labs(x = "Frekwencja, 2. tura", y = "Liczba komisji") +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5)
+  ) +
+  scale_x_continuous(labels = percent_format(scale = 1), 
+    breaks = seq(90, 100, by = 1)) +
+  scale_y_continuous(limits = c(0, NA))
+```
+
+Rzeczywiście, wydaje się, że jest pewna nadreprezentacja komisji z frekwencją co najmniej 99% (liczba komisji dla 98% odpowiada tempu spadku). Są 83 takie komisje. 
+
+```{r}
+#| include: false
+
+wyb25 %>% 
+  filter(Frekwencja_2_zaokr >= 99) %>% # 83 komisje
+  mutate(Wysoka_frekw_1 = Frekwencja_1 >= 90) %>% 
+  count(Wysoka_frekw_1) # połowa z nich miała wysoką frekwencję w 1. turze
+
+wyb25 %>% 
+  filter(Frekwencja_2_zaokr >= 99) %>%
+  summarise(mean(Nupr_2 < 100)) # ponad połowa < 100
+```
+
+Zacznijmy od tego, że w połowie z nich frekwencja w pierwszej turze również była bardzo wysoka (powyżej 90%). Po drugie, ponad połowa z nich to komisje z liczbą uprawnionych poniżej 100. Po trzecie, spójrzmy, co to za komisje:
+
+```{r}
+wyb25 %>% 
+  filter(Frekwencja_2_zaokr >= 99) %>%
+  count(Typ_obwodu, sort = TRUE) %>% 
+  set_names(c("Typ komisji", "N")) %>% 
+  kable()
+```
+
+Oczywiście nie ma w tym nic dziwnego, że w zakładach leczniczych i DPSach frekwencja może być bardzo wysoka (powodów jest wiele, między innymi wszystkie osoby są często na miejscu). W przypadku komisji zagranicznych wyborcy specjalnie muszą się zapisać, więc wysoka frekwencja też jest naturalna (we wszystkich tych komisjach w 1. turze też taka była). Zostały stałe komisje, ale zauważmy, że tylko część komisji z bardzo wysoką frekwencją można uznać za "nadmiarowe". Patrząc na poprzedni wykres, "naturalną" liczbę komisji o frekwencji 99% lub 100% można oszacować na kilkanaście.
+
+Innymi słowy, wszystko wygląda tak, jak powinno wyglądać. Dodam, że gdyby wybory odbyły się tylko w tych "podejrzanych" komisjach, Trzaskowski otrzymałby ok. 63% głosów (a 65% w komisjach z frekwencją co najmniej 90%).
+
+```{r}
+#| include: false
+
+wyb25 %>% 
+  filter(Frekwencja_2_zaokr >= 99) %>% 
+  summarise(across(c(Nawrocki_2, Trzaskowski_2), sum)) %>% 
+  pivot_longer(everything()) %>% 
+  mutate(prop = value / sum(value) * 100)
+
+wyb25 %>% 
+  filter(Frekwencja_2_zaokr >= 90) %>% 
+  summarise(across(c(Nawrocki_2, Trzaskowski_2), sum)) %>% 
+  pivot_longer(everything()) %>% 
+  mutate(prop = value / sum(value) * 100)
+```
+
+# Źródła
 
 Obliczenia wykonano w języku R, kod dostępny [tutaj](https://github.com/pmszulc/wybory2025_protest){target="_blank"}.
 
 * [Wyniki wyborów 2020](https://prezydent20200628.pkw.gov.pl/prezydent20200628/pl/dane_w_arkuszach){target="_blank"}
 * [Wyniki wyborów 2025](https://wybory.gov.pl/prezydent2025/pl/dane_w_arkuszach){target="_blank"}
-* [Wpis Cezarego Tomczyka](https://x.com/CTomczyk/status/1933872924403864011?t=48ZUSMFkpWer6zjrcSacZQ&s=19){target="_blank"}
 * [Protest](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"}
+* [Benford’s Law and the Detection of Election Fraud](https://www.cambridge.org/core/journals/political-analysis/article/benfords-law-and-the-detection-of-election-fraud/3B1D64E822371C461AF3C61CE91AAF6D) (dlaczego prawo Benforda to kiepskie narzędzie do analizy oszustw wyborczych)
 
