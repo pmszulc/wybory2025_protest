@@ -35,6 +35,12 @@ wyb20 <- full_join(wyb20_obw1, wyb20_obw2) %>%
   mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
   rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
 
+wyb20proc <- wyb20 %>% 
+  filter(N_1 > 0, N_2 > 0) %>% 
+  mutate(across(Nniew_1:Żółtek_1, ~ . / N_1 * 100)) %>%
+  mutate(across(Nniew_2:Trzaskowski_2, ~ . / N_2 * 100))
+
+
 ## 2025
 
 # 1. tura
@@ -70,3 +76,8 @@ wyb25_obw2 <- wyb25_obw2 %>%
 wyb25 <- full_join(wyb25_obw1, wyb25_obw2) %>% 
   mutate(across(Nupr_1:Trzaskowski_2, ~ ifelse(is.na(.), 0, .))) %>% 
   rename(Typ_obszaru = `Typ obszaru`, Typ_obwodu = `Typ obwodu`)
+
+wyb25proc <- wyb25 %>% 
+  filter(N_1 > 0, N_2 > 0) %>% 
+  mutate(across(Nniew_1:Zandberg_1, ~ . / N_1 * 100)) %>%
+  mutate(across(Nniew_2:Trzaskowski_2, ~ . / N_2 * 100))

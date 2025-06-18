@@ -23,6 +23,54 @@ wyb20 %>%
   filter(Duda_2 < 1500) %>% 
   ggplot(aes(Duda_2)) +
   geom_histogram()
+wyb25 %>% 
+  filter(Nawrocki_2 < 1500) %>% 
+  ggplot(aes(Nawrocki_2)) +
+  geom_histogram()
+
+
 wyb20 %>% summarise(sum(Duda_2 > 1500)) # tylko tyle pominąłem
 wyb20 %>% summarise(mean(Duda_2 > 99 & Duda_2 < 1000))
+wyb25 %>% summarise(mean(Nawrocki_2 > 99 & Nawrocki_2 < 1000))
+
+wyb20 %>% summarise(mean(Duda_2 >= 1000))
+wyb25 %>% summarise(mean(Nawrocki_2 >= 1000))
+
+
+
+# Zależność zwiększonej liczby głosów nieważny i poparciem dla Trzaskowskiego w I turze
+
+wyb25proc %>% 
+  filter(Nniew2x_1 > 0, Nniew2x_2 > 0, Trzaskowski_1 < 60) %>% 
+  mutate(wzrost2x = Nniew2x_2 / Nniew2x_1) %>% 
+  pivot_longer(c(Trzaskowski_1, Trzaskowski_2)) %>% 
+  ggplot(aes(value, wzrost2x, col = name)) +
+  #geom_point() +
+  geom_smooth() +
+  scale_y_log10()
+# ale czy to wpłynęło negatywnie? może tam, gdzie był największy wzrost 2x,
+# Trzaskowski dostał najwięcej?
+
+wyb25proc %>% 
+  filter(Nniew2x_1 > 0, Nniew2x_2 > 0) %>% 
+  mutate(wzrost2x = Nniew2x_2 / Nniew2x_1) %>% 
+  ggplot(aes(Mentzen_1, wzrost2x)) +
+  #geom_point() +
+  geom_smooth() +
+  scale_y_log10()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

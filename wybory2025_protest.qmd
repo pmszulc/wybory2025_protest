@@ -19,13 +19,16 @@ execute:
 library("tidyverse")
 library("scales")
 library("broom")
+library("mgcv")
+library("ggeffects")
+library("skimr")
 library("kableExtra")
 source("wczytaj_dane.R")
 source("funkcje.R")
 theme_set(ggpubr::theme_pubr(base_size = 16))
 ```
 
-Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, póki co analizuję wykorzystanie rozkładu Benforda oraz tzw. "ruski ogon" Kolejne analizy zostaną dodane wkrótce.
+Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, póki co analizuję wykorzystanie rozkładu Benforda, tzw. "ruski ogon" oraz wzrost głosów nieważnych. Kolejne analizy zostaną dodane wkrótce.
 
 ## Rozkład Benforda
 
@@ -123,7 +126,9 @@ cyfry20 %>%
   kable(digits = c(0, 2, 2, 2))
 ```
 
-Jak podano wcześniej, 4-cyfrowa liczba uprawnionych to były głównie liczby 1000-1999, w takim razie liczba głosów na kandydata bardzo rzadko jest liczbą 4-cyfrową. W przypadku Dudy w aż 92% mamy tylko liczby 3-cyfrowe (stąd rozkład w ogóle nie przypomina Benforda), dla Nawrockiego w 10% przypadków występują też liczby 2-cyfrowe, a dla Trzaskowskiego w 29% --- stąd rozkład dla niego najbardziej przypomina Benforda. Dodajmy, że te różnice wynikają stąd, że Duda i Nawrocki wygrywali głównie w mniejszych komisjach (na wsi).
+Jak podano wcześniej, 4-cyfrowa liczba uprawnionych to były głównie liczby 1000-1999, w takim razie liczba głosów na kandydata bardzo rzadko jest liczbą 4-cyfrową. W przypadku Dudy w aż 92% mamy tylko liczby 3-cyfrowe (stąd rozkład w ogóle nie przypomina Benforda), dla Nawrockiego w 10% przypadków występują też liczby 2-cyfrowe, a dla Trzaskowskiego w 29% --- stąd rozkład dla niego najbardziej przypomina Benforda. A te różnice wynikają stąd, że Duda i Nawrocki wygrywali głównie w mniejszych komisjach (na wsi).
+
+Dodam, że jeśli zdecydowana większość liczb jest tego samego rzędu, to rozkład pierwszej cyfry jest po prostu przybliżeniem histogramu. Rozkład liczby głosów oddanych na Dudę jest mniej więcej normalny, z maksimum w przedziale 300-399, stąd cyfra 3 jest najpopularniejsza.
 
 Podsumowując, liczba głosów rzeczywiście znacznie odbiega od rozkładu Benforda. Powodem jest to, że w ogóle nie powinna tak się rozkładać.
 
@@ -223,7 +228,223 @@ wyb25 %>%
   mutate(prop = value / sum(value) * 100)
 ```
 
-# Źródła
+## Głosy nieważne
+
+Jak twierdzą autorzy protestu, w drugiej turze wyborów wystąpił "ponadstandardowy wzrost głosów nieważnych, gdzie podwójnie zaznaczono kandydatów", na dodatek w komisjach, w których w pierwszej turze wygrał Trzaskowski.
+
+Procent głosów XX (nieważnych z podwójnym X) rzeczywiście się zwiększył, w drugiej turze było ich 3,75 razy więcej niż w pierwszej. W poprzednich wyborach prezydenckich (2020) również tak było, a nawet wzrost był jeszcze większy, wynosił 4,85 razy. Nie wiadomo zatem, co autorzy mają na myśli jako "ponadstandardowy" wzrost. Z jakim standardem się porównują?
+
+Dodajmy, że taki wzrost jest logiczny, bo część osób może nie znaleźć swojego kandydata w drugiej turze, o co łatwiej w pierwszej, gdy jest ich więcej. W takim wypadku można albo nie pójść na wybory, albo oddać nieważny głos.
+
+```{r}
+#| include: false
+
+niew25 <- wyb25 %>% 
+  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum)) %>% 
+  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  select(-c(N_1, N_2)) %>% 
+  mutate(Rok = 2025, .before = 1)
+
+niew20 <- wyb20 %>% 
+  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum)) %>% 
+  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  select(-c(N_1, N_2)) %>% 
+  mutate(Rok = 2020, .before = 1)
+
+bind_rows(niew20, niew25) %>% 
+  mutate(wzrost2x = Nniew2x_2 / Nniew2x_1) %>% 
+  mutate(wzrost0x = Nniew0x_2 / Nniew0x_1)
+```
+
+Ale jak rozumiem, kluczowym argumentem jest tu to, że ten wzrost "zależał" od tego, kto wygrał w pierwszej turze: jeśli Trzaskowski, wzrost był większy. Napisałem "zależał" w cudzysłowie, bo autorzy nawet nie próbują pokazać, że jest to zależność przyczynowa, po prostu informują o korelacji. A cóż z tego, że ona istnieje? Przecież nie ma żadnych powodów, żeby wzrost głosów XX był równomierny. Skoro komisje różnią się poparciem dla Nawrockiego i Trzaskowskiego, to dlaczego nie miałyby się różnić wzrostem nieważnych głosów w drugiej turze? To zadaniem autorów analizy jest przekonanie nas, że jest to nienaturalne.
+
+Mimo wszystko, pociągnijmy ten temat. Po pierwsze, mimo wielu prób, nie byłem w stanie otrzymać liczb, które podano w proteście. Jeśli ktoś jest w stanie wytłumaczyć, co oznacza np. wzrost 27,6% w dolnośląskim (w komisjach, w których wygrał Nawrocki), prosiłbym o wiadomość. Wbrew podpisowi tabeli, to raczej nie jest wzrost głosów XX, bo on był znacznie większy.
+
+```{r}
+#| include: false
+wyb25 %>% 
+  mutate(Wygrana = case_when(
+    Trzaskowski_1 > Nawrocki_1 ~ "Trzaskowski",
+    Trzaskowski_1 < Nawrocki_1 ~ "Nawrocki",
+    .default = "remis"
+  )) %>% 
+  filter(Wygrana != "remis") %>% 
+  filter(Nniew2x_1 > 0, Nniew0x_1 > 0) %>% # ?
+  mutate(across(c(Nniew_1, Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew_2, Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  mutate(
+    WzrostXX = Nniew2x_2 / Nniew2x_1 * 100 - 100,
+    Wzrost0X = Nniew0x_2 / Nniew0x_1 * 100 - 100,
+    WzrostNiew = Nniew_2 / Nniew_1 * 100 - 100
+  ) %>%
+  summarise(across(c(WzrostXX, Wzrost0X, WzrostNiew), mean), .by = c(Województwo, Wygrana))
+```
+
+Poniżej liczę to inaczej: sumuję wszystkie głosy XX z drugiej tury i sprawdzam, ile razy jest ich więcej w stosunku do pierwszej tury, w zależności od tego, kto wygrał w pierwszej turze. Dla porównania robię to samo dla poprzednich wyborów.
+
+```{r}
+niew25 <- wyb25 %>% 
+  mutate(Wygrana = case_when(
+    Trzaskowski_1 > Nawrocki_1 ~ "Trzaskowski",
+    Trzaskowski_1 < Nawrocki_1 ~ "Nawrocki",
+    .default = "remis"
+  )) %>% 
+  filter(Wygrana != "remis") %>% 
+  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum), .by = Wygrana) %>% 
+  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  select(-c(N_1, N_2)) %>% 
+  mutate(Rok = 2025, .before = 1) %>% 
+  arrange(Wygrana)
+
+niew20 <- wyb20proc %>% 
+  mutate(Wygrana = case_when(
+    Trzaskowski_1 > Duda_1 ~ "Trzaskowski",
+    Trzaskowski_1 < Duda_1 ~ "Duda",
+    .default = "remis"
+  )) %>% 
+  filter(Wygrana != "remis") %>% 
+  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum), .by = Wygrana) %>% 
+  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  select(-c(N_1, N_2)) %>% 
+  mutate(Rok = 2020, .before = 1) %>% 
+  arrange(Wygrana)
+
+bind_rows(niew25, niew20) %>% 
+  mutate(`Wzrost XX` = Nniew2x_2 / Nniew2x_1) %>% 
+  select(Rok, Wygrana, `Wzrost XX`) %>% 
+  kable(digits = c(0, NA, 2))
+```
+
+W komisjach, w których wygrał Trzaskowski (tzn. zdobył więcej głosów od Nawrockiego), podwójnych X jest 4,04 razy więcej, a w komisjach, w których wygrał Nawrocki, 3,32 razy. W 2020 roku różnica była większa, więc podobnie jak z rozkładem Benforda, trzeba by uznać, że w tamtych wyborach problem był jeszcze większy.
+
+Natomiast w tych liczbach nie widać niczego niepokojącego, bo jak pisałem, nie ma żadnych powodów, żeby wzrost podwójnych X był równomierny. Mimo wszystko, spróbuję wskazać jedną z potencjalnych przyczyn tych różnic.
+
+(Ta część analizy jest dość zaawansowana i wymaga wiedzy, czym jest kontrola czynników zakłócających w modelach statystycznych).
+
+Najpierw przedstawmy problem inaczej. Na osi X zaznaczyłem różnicę poparcia między Trzaskowskim i Nawrockim w pierwszej turze (w punktach procentowych), na osi Y różnicę w procencie nieważnych głosów (nie iloraz, jak wcześniej; w ten sposób łatwiej będzie zbudować model).
+
+```{r}
+wyb25proc %>% 
+  mutate(Przewaga = Trzaskowski_1 - Nawrocki_1) %>% 
+  filter(Nniew2x_2 > 0, Nniew2x_1 > 0, N_2 >= 400, Przewaga <= 50) %>% 
+  ggplot(aes(Przewaga, Nniew2x_2 - Nniew2x_1)) +
+  #geom_point() +
+  geom_smooth(col = "#0072B2", linewidth = 1.3) +
+  scale_x_continuous() +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "Różnica poparcia Trzaskowskiego i Nawrockiego\nw 1. turze [p.p.]", 
+    y = "Różnica w nieważnych głosach\nmiędzy 1. i 2. turą [p.p.]") +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5)
+  )
+```
+
+*Niebieska krzywa to model GAM; wartości na tej krzywej możemy interpretować jako średnią różnicę w nieważnych głosach w komisjach, w których przewaga Trzaskowskiego wynosiła konkretną wartość, np. 25 p.p. Ograniczyłem się do komisji, w których zagłosowało co najmniej 400 osób oraz odrzuciłem odstające przypadki, gdy przewaga Trzaskowskiego wynosiła ponad 50 p.p. Dodatkowo rozważam tylko komisje, w których zarówno w pierwszej, jak i drugiej turze, pojawił się choć jeden głos XX, bo poprzednie obliczenia też były wykonywane tylko dla takich komisji.*
+
+Widzimy coś rzekomo niepokojącego: im więcej głosów otrzymał Trzaskowski w pierwszej turze, tym więcej nieważnych głosów pojawiło się w drugiej. Czy da się to wyjaśnić?
+
+Na kolejnym wykresie widzimy, że w komisjach, w których Trzaskowski zdobył więcej głosów w pierwszej turze, Zandberg również.
+
+```{r}
+# wyb25proc %>% 
+#   mutate(Przewaga = Trzaskowski_1 - Nawrocki_1) %>% 
+#   filter(Nniew2x_2 > 0, Nniew2x_1 > 0, N_2 >= 100) %>% 
+#   ggplot(aes(Przewaga)) + 
+#   geom_histogram()
+
+wyb25proc %>% 
+  mutate(Przewaga = Trzaskowski_1 - Nawrocki_1) %>% 
+  filter(Nniew2x_2 > 0, Nniew2x_1 > 0, N_2 >= 400, Przewaga <= 50) %>% 
+  ggplot(aes(Przewaga, Zandberg_1)) +
+  #geom_point() +
+  geom_smooth(col = "#0072B2", linewidth = 1.3) +
+  scale_x_continuous() +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "Różnica poparcia Trzaskowskiego i Nawrockiego\nw 1. turze [p.p.]", 
+    y = "Poparcie Zandberga, 1. tura [%]") +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5)
+  )
+```
+
+Czyli informacja, że Trzaskowski otrzymał więcej głosów od Nawrockiego, jest też informacją, że w danej komisji było więcej sympatyków Zandberga. Co zrobiły te osoby w drugiej turze? Zapewne większość zagłosowała na Trzaskowskiego, ale być może część stwierdziła, że odda nieważny głos (Zandberg nikogo nie poparł). Dodajmy, że wystarczy niewielka liczba takich osób, by wytłumaczyć zaprezentowane wcześniej "podejrzane" różnice.
+
+Czy da się to zweryfikować na podstawie dostępnych danych? Spróbujmy wyjść poza proste korelacje i zbudujmy model, w którym uwzględnimy więcej zmiennych jednocześnie. Różnicę w głosach XX wyjaśniam przy pomocy wyników pierwszej tury: różnicy poparcia Trzaskowskiego i Nawrockiego, poparcia Zandberga, Mentzena itd. (pominąłem jedynie Maciaka i Wocha, bo otrzymali bardzo mało głosów). Poniższe zależności powstały na bazie takiego modelu (zależności dla pozostałych kandydatów są bardzo słabe).
+
+```{r}
+df <- wyb25proc %>% 
+  mutate(Przewaga = Trzaskowski_1 - Nawrocki_1) %>% 
+  filter(Nniew2x_2 > 0, Nniew2x_1 > 0, N_2 >= 400, Przewaga <= 50, Zandberg_1 < 15) %>% 
+  # mutate(WzrostXX = Nniew2x_2 / Nniew2x_1) %>% 
+  mutate(RoznicaXX = Nniew2x_2 - Nniew2x_1)
+
+# pomijam Wocha i Maciaka
+m_gam <- gam(RoznicaXX ~ s(Zandberg_1) + s(Przewaga) + s(Stanowski_1) + 
+  s(Mentzen_1) + s(Braun_1) + s(Bartoszewicz_1) + s(Biejat_1) +
+  s(Jakubiak_1) + s(Senyszyn_1) + s(Hołownia_1), data = df)
+# summary(m_gam)
+
+# gam(RoznicaXX ~ s(Zandberg_1) + Przewaga + s(Stanowski_1) + 
+#   s(Hołownia_1), data = df) %>% summary() # nieistotne
+# m_gam <- gam(RoznicaXX ~ s(Zandberg_1) + s(Przewaga) + s(Stanowski_1) + 
+#   s(Hołownia_1), data = df)
+
+preds <- ggpredict(m_gam)
+zandberg <- preds$Zandberg_1 %>% as_tibble()
+holownia <- preds$Hołownia_1 %>% as_tibble()
+stanowski <- preds$Stanowski_1 %>% as_tibble()
+przewaga <- preds$Przewaga %>% as_tibble()
+# zależność z Jakubiakiem niemonotoniczna
+preds_df <- bind_rows(zandberg, holownia, stanowski, przewaga) %>% 
+  mutate(group = str_remove(group, "_1")) %>% 
+  mutate(group = fct_recode(group, "Trzaskowski - Nawrocki" = "Przewaga")) %>% 
+  mutate(group = fct_relevel(group, "Zandberg", "Stanowski", "Hołownia"))
+
+preds_df %>% 
+  ggplot(aes(x, predicted)) +
+  geom_line(linewidth = 1.3, col = "#0072B2") +
+  facet_wrap(vars(group), scales = "free_x") +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), linetype = 2, alpha = 0.2) +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.5)
+  ) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(y = "Różnica w głosach nieważnych\n(podwójny X) [p.p.]",
+    x = "Poparcie [%]")
+```
+
+Jak widać, im więcej głosów otrzymało tych trzech kandydatów (Zandberg, Hołownia, Stanowski), tym średnio więcej nieważnych głosów pojawiło się w drugiej turze. Jednym z wyjaśnień może być to, że część z wyborców, którzy poparli tych kandydatów, zdecydowała się w drugiej turze oddać głos nieważny. Ale najważniejsze, że znika zależność z różnicą poparcia Trzaskowskiego i Nawrockiego.
+
+Dodajmy, że R2 dla modelu wynosi jedynie 8%, a w takim razie procentu głosów XX nie da się wyjaśnić przy pomocy wyników pierwszej tury. Natomiast jest to wystarczające, by zniknął "podejrzany" wzrost takich głosów w komisjach, w których wygrał Trzaskowski.
+
+```{r}
+#| include: false
+
+m_gam2 <- gam(RoznicaXX ~ s(Zandberg_1) + s(Stanowski_1) + 
+  s(Mentzen_1) + s(Braun_1) + s(Bartoszewicz_1) + s(Biejat_1) +
+  s(Jakubiak_1) + s(Senyszyn_1) + s(Hołownia_1), data = df)
+df %>% 
+  mutate(reszty = residuals(m_gam2) + mean(RoznicaXX)) %>% 
+   mutate(Wygrana = case_when(
+    Trzaskowski_1 > Nawrocki_1 ~ "Trzaskowski",
+    Trzaskowski_1 < Nawrocki_1 ~ "Nawrocki",
+    .default = "remis"
+  )) %>% 
+  filter(Wygrana != "remis") %>% 
+  summarise(mean(reszty), mean(RoznicaXX), .by = Wygrana)
+```
+
+## Referencje
 
 Obliczenia wykonano w języku R, kod dostępny [tutaj](https://github.com/pmszulc/wybory2025_protest){target="_blank"}.
 
