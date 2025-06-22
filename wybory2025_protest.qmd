@@ -22,13 +22,18 @@ library("broom")
 library("mgcv")
 library("ggeffects")
 library("skimr")
+library("car")
 library("kableExtra")
 source("wczytaj_dane.R")
 source("funkcje.R")
 theme_set(ggpubr::theme_pubr(base_size = 16))
 ```
 
-Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, póki co analizuję wykorzystanie rozkładu Benforda, tzw. "ruski ogon" oraz wzrost głosów nieważnych. Kolejne analizy zostaną dodane wkrótce.
+Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, wszystkie statystyczne, i jak pokażę, powoływanie się na nie jest błędem.
+
+W ostatniej części analizuję model opisany na stronie defoliator.pl, który rzeczywiście może być użyty do wskazania komisji, w których mogło dojść do naruszeń, natomiast nie pozwala na wyciąganie wniosków, że było ich wiele i głównie na korzyść jednego z kandydatów. Ponadto prezentuję alternatywne podejście do wykrywania takich komisji (anomalii).
+
+Zaznaczam, że jest to analiza konkretnych argumentów i nawet odrzucenie wszystkich nie jest dowodem, że w omawianych wyborach nie doszło do naruszeń, które mogły zmienić wynik wyborów. Mogą istnieć inne argumenty, w szczególności takie, które nie bazują na statystyce.
 
 ## Rozkład Benforda
 
@@ -240,20 +245,23 @@ Dodajmy, że taki wzrost jest logiczny, bo część osób może nie znaleźć sw
 #| include: false
 
 niew25 <- wyb25 %>% 
-  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum)) %>% 
-  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
-  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  summarise(across(c(N_1, N_2, Nniew_1, Nniew2x_1, Nniew0x_1, Nniew_2, 
+    Nniew2x_2, Nniew0x_2), sum)) %>% 
+  mutate(across(c(Nniew_1, Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew_2, Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
   select(-c(N_1, N_2)) %>% 
   mutate(Rok = 2025, .before = 1)
 
 niew20 <- wyb20 %>% 
-  summarise(across(c(N_1, N_2, Nniew2x_1, Nniew0x_1, Nniew2x_2, Nniew0x_2), sum)) %>% 
-  mutate(across(c(Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
-  mutate(across(c(Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
+  summarise(across(c(N_1, N_2, Nniew_1, Nniew2x_1, Nniew0x_1, Nniew_2, 
+    Nniew2x_2, Nniew0x_2), sum)) %>% 
+  mutate(across(c(Nniew_1, Nniew2x_1, Nniew0x_1), ~ . / N_1 * 100)) %>% 
+  mutate(across(c(Nniew_2, Nniew2x_2, Nniew0x_2), ~ . / N_2 * 100)) %>% 
   select(-c(N_1, N_2)) %>% 
   mutate(Rok = 2020, .before = 1)
 
-bind_rows(niew20, niew25) %>% 
+bind_rows(niew20, niew25) %>%
+  mutate(wzrost = Nniew_2 / Nniew_1) %>% 
   mutate(wzrost2x = Nniew2x_2 / Nniew2x_1) %>% 
   mutate(wzrost0x = Nniew0x_2 / Nniew0x_1)
 ```
@@ -444,12 +452,385 @@ df %>%
   summarise(mean(reszty), mean(RoznicaXX), .by = Wygrana)
 ```
 
+## Model detekcji anomalii
+
+W ostatniej części analizuję model opublikowany na blogu [defoliator.pl] (https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025){target="_blank"}, który będę nazywał *modelem Def*. Jest to najbardziej zaawansowane podejście do szukania potencjalnych nieprawidłowości i w zasadzie jedyne w proteście, które potencjalnie ma sens. Co więcej, właśnie przy pomocy tego typu modeli wytypowano komisje, w których zamieniono wyniki kandydatów w drugiej turze, co następnie zostało [potwierdzone](https://businessinsider.com.pl/prawo/przeliczanie-kart-wyborczych-zamienione-glosy-w-siedmiu-na-10-sprawdzanych-komisji/jwflnx5){target="_blank"}.
+
+Rozumowanie opiera się na założeniu, że na podstawie wyników pierwszej tury w danej komisji oraz ogólnopolskiego (szacowanego) przepływu głosów da się wystarczająco dokładnie przewidzieć wyniki drugiej tury. Na tyle, by wskazać przypadki tak odstające, że rozsądnie jest przeliczyć tam głosy jeszcze raz.
+
+Autor przyjmuje pewien próg, przy którym uznaje, że wyniku drugiej tury nie da się wyjaśnić wynikiem pierwszej. Na tej podstawie kwalifikuje ok. 1000 komisji jako anomalie. Co ważne, okazuje się, że nie ma w nich symetrii: w 80% z nich potencjalne pomyłki wystąpiły na korzyść Nawrockiego, a w 20% Trzaskowskiego. 
+
+Najważniejsze problemy z modelem Def podam w podsumowaniu, bo najłatwiej będzie je zrozumieć, gdy najpierw zaprezentuję swój model. Który, jak się okaże, daje zupełnie inne wyniki: co najwyżej kilkadziesiąt komisji, które można uznać za anomalie, oraz symetryczny ich rozkład (podobna liczba z korzyścią dla Trzaskowskiego i Nawrockiego)
+
+Zacznę od uwagi ogólnej, którą można podsumować pytaniem: któremu modelowi zaufać? Ja oczywiście bardziej ufam swojemu, bo po pierwsze wiem, jak został skonstruowany, po drugie moim zdaniem jest obiektywnie lepszy. Natomiast to nie jest wystarczający argument. Co więcej, nie ufam swojemu modelowi na tyle, żeby posłużył do jakichkolwiek rekomendacji. Moim zdaniem do tego trzeba podejść inaczej:
+
+1) Model powinien być poddany testom. W szczególności: jakich wyników oczekujemy przy założeniu, że wybory są całkowicie pozbawione pomyłek? Czy model nie jest obciążony w kierunku jednego z kandydatów? (np. łatwiej wykrywa anomalie na jego korzyść, bo wygrywa on zwykle w mniejszych komisjach, z większą przewagą itp.) Jak model się zachowa, gdy nie będą spełnione pewne przyjęte założenia? Jeśli model zależy od ustalanych przez użytkownika parametrów, to w jakim stopniu zmienią się wyniki, jeśli wprowadzimy inne parametry?
+
+2) Model powinien zostać zrecenzowany przez profesjonalistów, być może opublikowany w czasopiśmie naukowym. Z publikacją widzę pewien problem, bo jeśli model będzie zależał tylko (lub w głównej mierze) od wyników pierwszej tury, to każdy będzie mógł go zbudować, wykonać prognozę wyników drugiej tury, a następnie dokonać takich fałszerstw, które nie będą znacząco odbiegały od prognoz, co uniemożliwi ich detekcję. Mimo wszystko transparentność modelu wydaje mi się ważniejsza. Poza tym to kwestia tego, jaki model zostanie zaproponowany, tzn. może być odporny na takie wykorzystanie. Prezentowanego przeze mnie modelu nie da się zbudować bez znajomości wyników drugiej tury.
+
+3) Metoda konstrukcji modelu powinna być znana przed wyborami. Sam model najpewniej będzie bazował na danych z wyborów, więc nie da się go wcześniej zbudować, natomiast ogólny algorytm, jak to zrobić, powinien być ustalony. Ma to zapobiec sytuacji, w których osoba odpowiedzialna za budowę modelu przyjmuje takie założenia (np. takie wartości parametrów), żeby wpłynąć na to, co model zwraca.
+
+4) Powinno się wcześniej ustalić, jak reagować na wyniki modelu. Załóżmy na przykład, że model wskazuje 30 nieprawidłowości, co do których mamy bardzo duży stopień pewności. Zostają one zweryfikowane przez ponowne liczenie głosów. Jeśli większość się potwierdzi, przechodzimy do mniej pewnych przypadków, lub zarządzamy ponowne liczenie głosów w *N* losowo wybranych komisjach (liczba do ustalenia). Moim zdaniem podejście z losowaniem można stosować zawsze, niezależnie od tego, czy są jakiekolwiek podejrzenia. Ponieważ mamy listę wszystkich komisji i do każdej możemy dotrzeć, otrzymamy próbę losową i możemy wykorzystać klasyczne wnioskowanie z próby na populację. W ten sposób nie wykryjemy pojedynczych anomalii, ale systematyczne oszustwa, które stanowią większy problem.
+
+Dodam, że takie modele są już dostępne, odsyłam np. [tutaj](https://websites.umich.edu/~wmebane/){target="_blank"}. Natomiast w przypadku polskich wyborów lepsze mogą okazać się inne podejścia.
+
+### Mój model
+
+Przejdę teraz do opisu swojego modelu, jeszcze raz zastrzegając, że **moim głównym celem jest pokazanie, że można zbudować inny, którego wyniki będą inne**. Oczywiście nie próbowałem metodą prób i błędów dojść do takiego, który zwróci inne wyniki. Przeciwnie: zastosowałem standardowe podejście i uważam, że uzyskany model jest dokładniejszy od modelu Def.
+
+Dodam, że choć nieprawidłowości wskazane przez mój model są symetryczne, to wciąż wiele z nich w mojej ocenie JEST nieprawidłowościami. Przypuszczam, że model Def też zwrócił te komisje, ale oprócz tego, w wyniku przyjętych błędnych założeń, znacznie więcej, na dodatek w konkretną stronę.
+
+Kod, przy pomocy którego buduję model, jest dostępny [tutaj](https://github.com/pmszulc/wybory2025_protest){target="_blank"}, więc jeśli ktoś zna język R, może przeanalizować, w jaki sposób go buduję. Poniżej najważniejsze jego cechy.
+
+1. Rozważam tylko komisje, w których w drugiej turze zagłosowało co najmniej 200 osób (oszustwa w mniejszych są raczej nie do wykrycia). Oprócz tego pominąłem komisje, w których nastąpił duży skok/spadek frekwencji (co najmniej 25 p.p.), liczby uprawnionych (25%) lub liczby głosujących (25%; to nie jest to samo, co różnica we frekwencji, bo liczba uprawnionych może się zmieniać). Jeśli w drugiej turze głosowały inne osoby niż w pierwszej, to różnice w wynikach mogą wynikać właśnie z tego (to oczywiście samo w sobie może być anomalią, więcej o tym później).
+
+2. Sprawdzałem, jak model się zachowa, jeśli zmienię każdy z tych parametrów (na wypadek przyjęcia przeze mnie błędnych założeń). Na przykład minimalna liczba głosujących została zmieniona na 100, 500, łącznie z przypadkiem, gdy nie ograniczałem się w żaden sposób (również co do pozostałych parametrów). Oczywiście miało to wpływ na liczbę wskazanych komisji, ale nie na symetrię oraz tylko minimalny wpływ na współczynniki modelu. Liczba wskazanych komisji się zwiększyła, bo po poluzowaniu ograniczeń dopuszczam więcej takich, w których różnice między pierwszą a drugą drugą da się łatwo wyjaśnić (np. niewielką liczbą głosujących).
+
+3. Dopasowuję model regresji liniowej, w której zmienną zależną jest procent głosów oddanych na Trzaskowskiego w drugiej turze, a zamiennymi niezależnymi wyniki procentowe każdego z kandydatów w pierwszej turze (oprócz Nawrockiego, bo jest on liniowo zależny od pozostałych) oraz różnica we frekwencji (p.p.) i liczbie uprawnionych (%). Pominąłem różnicę w liczbie głosujących, bo wynika z pozostałych.
+
+4. Nie ma znaczenia, czy pominę wynik Nawrockiego, czy innego kandydata (zostało to sprawdzone). Ważne tylko, by nie był to ktoś, kto otrzymał bardzo mało głosów, bo wtedy pominięcie go nie zlikwiduje współliniowości. Dopasowałem też model, w której zmienną zależną był wynik Nawrockiego w drugiej turze, a nie Trzaskowskiego, i otrzymałem te same wyniki (ale to wynika z matematyki). W modelu uwzględniam różnicę we frekwencji i liczbie uprawnionych, gdyż część różnic można wyjaśnić właśnie tymi zmiennymi. Natomiast ich wpływ jest niewielki, w szczególności sprawdziłem, że pominięcie ich nie zmienia wyników.
+
+5. Współczynnik R^2 dla modelu wynosi 98,5%, średni błąd bezwzględny 1,5 p.p. (prognozując wyniki drugiej na podstawie pierwszej, mylimy się średnio jedynie o 1,5 p.p.). Czyli model jest bardzo dokładny, natomiast nie ma możliwości, by nadmiernie dopasował się do dodanych (to uniemożliwiłoby detekcję anomalii), bo jest bardzo mało elastyczny (regresja liniowa, 14 zmiennych niezależnych).
+
+6. Model bazuje na wynikach kandydatów, których nie ma w drugiej turze, więc w pewnym sensie szacuje przepływy głosów. Zakłada on jednak, że są one takie same w całej Polsce (np. w każdej gminie), co prawie na pewno nie jest prawdą. To powoduje, że część anomalii wykrytych przez taki model może dać się wyjaśnić przez inny przepływ głosów akurat w tym miejscu. Zbudowałem dodatkowy modelu, w którym dla każdego województwa przepływy mogły być inne (interakcja wszystkich zmiennych z województwem), ale wpływ na wyniki był minimalny. Schodzenie niżej, na poziom powiatów lub gmin, jest już problematyczne, bo bardzo mocno rośnie liczba parametrów, więc model może nadmiernie dopasować się do danych.
+
+7. Anomalie są wskazywane na podstawie reszt z modelu (studentyzowanych). Reszta dodatnia oznacza, że oficjalny wynik Trzaskowskiego jest większy niż prognozowany, a takim razie -- jeśli jest to wynik pomyłki lub oszustwa -- jest ona na jego korzyść. Jeśli reszta jest ujemna, potencjalna pomyłka lub oszustwo były na korzyść Nawrockiego. Ponieważ wiemy, jak takie reszty powinny się rozkładać (rozkład t-Studenta; przy założeniu poprawnej specyfikacji modelu), możemy dla każdej z nich policzyć p-wartość. W uproszczeniu, przy jej pomocy możemy określić komisje, którym wynik drugiej tury jest ekstremalnie mało prawdopodobny, porównując z wynikami pierwszej. Następnie jest stosowana korekta Bonferroniego i za anomalię traktuję tę obserwację (komisję), dla której p-wartość jest mniejsza od 0,05. Podaję też wyniki dla bardzo liberalnego podejścia, w którym nie stosuję żadnej korekty (żeby porównać się z wynikami modelu Def).
+
+8. Model nie wychwytuje wszystkich anomalii, ale tylko takie przypadki, w których wyniki drugiej tury znacząco różnią się od pierwszej. W szczególności nie wykrywa sytuacji, w której oszustwa dokonano w obu turach (wystarczająco konsekwentnie). Oprócz tego niektóre anomalie mogą świadczyć o tym, że to w pierwszej turze popełnione błąd, nie w pierwszej. Natomiast model nie wykrywa tylko anomalii z odwróceniem wyniku (co na pewno miało miejsce np. w komisji nr 95 Krakowie), ale każdy przypadek, w którym wynik nie jest taki, jaki "powinien" być.
+
+9. Reszty z modelu mają rozkład symetryczny. Po usunięciu anomalii (tych, co do których możemy mieć dużą pewność, czyli 42 obserwacji), ich rozkład nie jest normalny, kurtoza jest większa (1,5). Może to wynikać z tego, że w pozostałych obserwacjach o dużych resztach wciąż kryje się wiele takich, które mogą być rezultatem pomyłki lub oszustwa --- natomiast pewność co do tego jest mniejsza. Powody mogą być też inne, łącznie z takim, że liniowe przybliżenie zależności z wynikami pierwszej tury jest niewystarczające.
+
+10. Na podstawie modelu można wskazać ograniczoną liczbę anomalii, bo ostatecznie wszystkie reszty muszą się zerować, co wskazywałoby na pełną symetrię. Natomiast nie ma żadnego powodu, żeby ta symetria wystąpiła, gdy analizujemy np. 100 największych reszt.
+
+```{r}
+#| include: false
+
+wyb25_lm <- wyb25proc %>% 
+  mutate(Nupr_roznica = (Nupr_2 / Nupr_1 - 1) * 100) %>% # ile % uprawnionych przybyło
+  mutate(Frekwencja_roznica =  (N_2 / Nupr_2 - N_1 / Nupr_1) * 100) %>% 
+  mutate(N_roznica = (N_2 - N_1) / N_1 * 100) %>% 
+  # pomijam przypadki, w których w 2. turze głosowało albo dużo nowych osób, albo
+  # dużo nie przyszło -- bo wtedy nie da się przewidzieć wyników 2. tury na podstawie 1.
+  filter(
+    N_roznica > -25, N_roznica < 25,
+    Nupr_roznica > -25, Nupr_roznica < 25,
+    Frekwencja_roznica > -25, Frekwencja_roznica < 25
+  ) %>% 
+  filter(N_2 >= 200)
+
+wyb25_lm %>% 
+  ggplot(aes(Frekwencja_roznica)) +
+  geom_histogram()
+wyb25_lm %>% 
+  ggplot(aes(N_roznica)) +
+  geom_histogram()
+wyb25_lm %>% 
+  ggplot(aes(Nupr_roznica)) +
+  geom_histogram()
+
+# Rezygnuję z Nawrocki_1 (współliniowość) oraz N_roznica (silna korelacja
+# z Nupr_roznica i Frekwencja_roznica)
+m_lm <- lm(Trzaskowski_2 ~ Bartoszewicz_1 + Biejat_1 + Braun_1 + Hołownia_1 + 
+  Jakubiak_1 + Maciak_1 + Mentzen_1 + Senyszyn_1 + Stanowski_1 + Trzaskowski_1 +
+    Woch_1 + Zandberg_1 + Nupr_roznica + Frekwencja_roznica, data = wyb25_lm)
+# Model nie wykrywa tylko odwróceń, ale też inne anomalie (tzn. też dla 50%/50%). Po prostu
+# wynik "powinien" być inny
+summary(m_lm)
+vif(m_lm) # współliniowość
+# plot(m_lm) # założenia (tylko częściowo mogą być spełnione, bo mamy anomalie)
+mean(abs(wyb25_lm$Trzaskowski_2 - predict(m_lm))) # MAE 1.50
+
+# sprawdenie z modelem Nawrocki_2
+# m_lm <- lm(Nawrocki_2 ~ Bartoszewicz_1 + Biejat_1 + Braun_1 + Hołownia_1 + 
+#   Jakubiak_1 + Maciak_1 + Mentzen_1 + Senyszyn_1 + Stanowski_1 + Nawrocki_1 +
+#   Woch_1 + Zandberg_1 + Nupr_roznica + Frekwencja_roznica, data = wyb25_lm)
+# summary(m_lm)
+
+# Dane odstające
+out_test <- outlierTest(m_lm, cutoff = Inf, n.max = 2000)
+out_df <- tibble(
+  obs = names(out_test$rstudent),
+  rstudent = out_test$rstudent,
+  p = out_test$p,
+  bonf.p = out_test$bonf.p
+) %>% 
+  filter(p < 0.05)
+out_df %>% filter(bonf.p < 0.05) # tylko 42 obs.
+
+anomalie <- wyb25_lm %>%
+  mutate(obs = as.character(row_number())) %>% 
+  mutate(Trzaskowski_pred = predict(m_lm)) %>% 
+  slice(as.numeric(out_df$obs)) %>% 
+  left_join(out_df, by = "obs") %>% 
+  arrange(desc(abs(rstudent))) %>% 
+  select(Kod, Komisja, Gmina, Siedziba, rstudent, Trzaskowski_pred,
+    Trzaskowski_proc = Trzaskowski_2, Nawrocki_proc = Nawrocki_2, rstudent:bonf.p) %>% 
+  mutate(Korzytne = ifelse(rstudent > 0, "Trzaskowski", "Nawrocki")) %>% 
+  left_join(wyb25 %>% select(Kod, Komisja, 
+    Trzaskowski_N = Trzaskowski_2, Nawrocki_N = Nawrocki_2), by = c("Kod", "Komisja")) %>% 
+  mutate(Trzaskowski_pred_N = Trzaskowski_pred/100 * (Trzaskowski_N + Nawrocki_N)) %>% 
+  mutate(Nawrocki_pred_N = (1 - Trzaskowski_pred/100) * (Trzaskowski_N + Nawrocki_N)) %>% 
+  mutate(Różnica_pp = Trzaskowski_proc - Trzaskowski_pred)
+
+# Pominięcie anomalii (tylko ekstremalnych przypadków)
+ind <- out_df %>% 
+  filter(bonf.p < 0.05) %>% 
+  pull(obs) %>% 
+  as.numeric()
+m_lm_bez_anom <- wyb25_lm %>% 
+  slice(-ind) %>% 
+  lm(Trzaskowski_2 ~ Bartoszewicz_1 + Biejat_1 + Braun_1 + Hołownia_1 + 
+    Jakubiak_1 + Maciak_1 + Mentzen_1 + Senyszyn_1 + Stanowski_1 + Trzaskowski_1 +
+    Woch_1 + Zandberg_1 + Nupr_roznica + Frekwencja_roznica, data = .)
+summary(m_lm_bez_anom)
+# plot(m_lm_bez_anom)
+hist(resid(m_lm_bez_anom))
+e1071::kurtosis(resid(m_lm_bez_anom))
+```
+
+Poniżej komisje, dla których p-wartość (z korektą Bonferroniego) była mniejsza od 0,05. *Reszta_s* to reszta studentyzowana, przy pomocy której szukam danych odstających, w kolumnie *p* p-wartość (z korektą), *Różnica_pp* to różnica między oficjalnym wynikiem Trzaskowskiego a prognozowanym.
+
+```{r}
+anomalie %>% 
+  filter(bonf.p < 0.05) %>% 
+  select(Gmina, Komisja, Reszta_s = rstudent, p = bonf.p, Różnica_pp) %>%
+  #mutate(p = signif(p, digits = 3)) %>%
+  mutate(p = formatC(p, format = "e", digits = 2)) %>% 
+  mutate(p = as.character(p)) %>% 
+  kable(digits = c(NA, 0, 2, NA, 2), align = c("l", rep("r", 4)))
+```
+
+Specjalnie pokazuję wszystkie, bo to w jakimś stopniu umożliwia ocenę jakości całego podejścia, natomiast każdej z komisji należałoby się przyjrzeć i być może część wykluczyć po głębszej analizie. Jak widać, ostatnie anomalie to różnice jedynie na poziomie 10 p.p., tak że już tutaj można mieć wątpliwości, czy oficjalne wyniki są nieprawidłowe.
+
+W sumie 19 anomalii jest na korzyść Trzaskowskiego, 23 na korzyść Nawrockiego. Porównując wartości oficjalne z prognozowanymi (czyli zakładając, że w każdym przypadku doszło do nieprawidłowość i model wskazuje poprawny wynik), Trzaskowski stracił 1750 głosów.
+
+Moim zdaniem nie można pójść dalej (tzn. wskazywać kolejnych anomalii), ale nawet jeśli to zrobić i nie stosować żadnej korekty na wielokrotne testowanie (czyli bazować na surowej p-wartości), model wskazuje na 1226 podejrzanych komisji: 601 na korzyść Trzaskowskiego i 625 Nawrockiego. Trzaskowski stracił w sumie 382 głosy (czyli w kolejnych "anomaliach" jest bardzo duża symetria, a nawet Nawrocki lekko traci). Choć jak wspomniałem wcześniej, im więcej przypadków rozpatrujemy, tym symetria staje się coraz bardziej wymuszona przez konstrukcję modelu.
+
+```{r}
+#| include: false
+
+anomalie %>% 
+  filter(bonf.p < 0.05) %>% 
+  count(Korzytne) 
+anomalie %>% 
+  count(Korzytne)
+anomalie %>% 
+  ggplot(aes(abs(rstudent), fill = Korzytne)) +
+  geom_density(alpha = 0.6) +
+  scale_x_log10() # podobne rozkłady
+
+# Porównanie sumy wyników prognozowanych i podanych
+anomalie %>%
+  filter(bonf.p < 0.05) %>% 
+  summarise(across(c(Trzaskowski_N, Trzaskowski_pred_N, 
+    Nawrocki_N, Nawrocki_pred_N), sum)) %>% 
+  mutate(Trzask = Trzaskowski_N - Trzaskowski_pred_N, 
+    Nawr = Nawrocki_N - Nawrocki_pred_N)
+# Trzaskowski stracił 1048 głosów, Nawrocki tyle zyskał
+
+anomalie %>%
+  summarise(across(c(Trzaskowski_N, Trzaskowski_pred_N, 
+    Nawrocki_N, Nawrocki_pred_N), sum)) %>% 
+  mutate(Trzask = Trzaskowski_N - Trzaskowski_pred_N, 
+    Nawr = Nawrocki_N - Nawrocki_pred_N)
+# Trzaskowski stracił 1259 głosów, Nawrocki tyle zyskał
+```
+
+```{r}
+#| include: false
+#| eval: false
+
+# Interakcje z województwem
+wyb25_lm <- wyb25_lm %>% 
+  mutate(Województwo = ifelse(is.na(Województwo), "Zagranica", Województwo))
+m_lm_inter <- lm(Trzaskowski_2 ~ (Bartoszewicz_1 + Biejat_1 + Braun_1 + Hołownia_1 + 
+    Jakubiak_1 + Maciak_1 + Mentzen_1 + Senyszyn_1 + Stanowski_1 +  Trzaskowski_1 +
+    Woch_1 + Zandberg_1 + Nupr_roznica + Frekwencja_roznica)*Województwo, data = wyb25_lm)
+summary(m_lm_inter)
+```
+
+Sprawdziłem to podejście dla innych wyborów prezydenckich: w 2020 roku (zmienna zależna to też wynik Trzaskowskiego) i 2015 (Komorowski). Model dla 2020 jest bardzo podobny: R^2 wynosi 98,8%, średni błąd bezwzględny 1,36 p.p. Zwraca 43 anomalie: 23 na korzyść Trzaskowskiego, 20 na korzyść Dudy (Trzaskowski zyskał przez to 76 głosów).
+
+Model dla 2015 roku jest słabszy, R^2 wynosi 96,4%, błąd bezwzględny 2,21 p.p. Zwraca 14 anomalii: 11 na korzyść Komorowskiego, 3 Dudy (Komorowski zyskał przez to 1082 głosy).
+
+```{r}
+#| include: false
+#| eval: false
+
+### 2020
+
+wyb20_lm <- wyb20proc %>% 
+  mutate(Nupr_roznica = (Nupr_2 / Nupr_1 - 1) * 100) %>% 
+  mutate(Frekwencja_roznica =  (N_2 / Nupr_2 - N_1 / Nupr_1) * 100) %>% 
+  mutate(N_roznica = (N_2 - N_1) / N_1 * 100) %>% 
+  filter(
+    N_roznica > -25, N_roznica < 25, ,
+    Nupr_roznica > -25, Nupr_roznica < 25,
+    Frekwencja_roznica > -25, Frekwencja_roznica < 25
+  ) %>% 
+  filter(N_2 >= 200)
+
+wyb20_lm %>% 
+  ggplot(aes(Frekwencja_roznica)) +
+  geom_histogram()
+wyb20_lm %>% 
+  ggplot(aes(N_roznica)) +
+  geom_histogram()
+wyb20_lm %>% 
+  ggplot(aes(Nupr_roznica)) +
+  geom_histogram()
+
+m_lm <- lm(Trzaskowski_2 ~ Biedroń_1 + Bosak_1 + Hołownia_1 + Jakubiak_1 +
+  Kamysz_1 + Piotrowski_1 + Tanajno_1 + Trzaskowski_1 + Witkowski_1 +
+  Żółtek_1 + Nupr_roznica + Frekwencja_roznica, data = wyb20_lm)
+summary(m_lm)
+vif(m_lm)
+mean(abs(wyb20_lm$Trzaskowski_2 - predict(m_lm))) # MAE 1.36
+
+out_test <- outlierTest(m_lm, cutoff = Inf, n.max = 2000)
+out_df <- tibble(
+  obs = names(out_test$rstudent),
+  rstudent = out_test$rstudent,
+  p = out_test$p,
+  bonf.p = out_test$bonf.p
+) %>% 
+  filter(p < 0.05)
+out_df %>% filter(bonf.p < 0.05) # 43
+
+anomalie <- wyb20_lm %>%
+  mutate(obs = as.character(row_number())) %>% 
+  mutate(Trzaskowski_pred = predict(m_lm)) %>% 
+  slice(as.numeric(out_df$obs)) %>% 
+  left_join(out_df, by = "obs") %>% 
+  arrange(desc(abs(rstudent))) %>% 
+  select(Kod, Komisja, Gmina, Siedziba, rstudent, Trzaskowski_pred,
+    Trzaskowski_proc = Trzaskowski_2, Duda_proc = Duda_2, rstudent:bonf.p) %>% 
+  mutate(Korzytne = ifelse(rstudent < 0, "Trzaskowski", "Duda")) %>% 
+  left_join(wyb20 %>% select(Kod, Komisja, 
+    Trzaskowski_N = Trzaskowski_2, Duda_N = Duda_2), by = c("Kod", "Komisja")) %>% 
+  mutate(Trzaskowski_pred_N = Trzaskowski_pred/100 * (Trzaskowski_N + Duda_N)) %>% 
+  mutate(Duda_pred_N = (1 - Trzaskowski_pred/100) * (Trzaskowski_N + Duda_N)) %>% 
+  mutate(Różnica_pp = Trzaskowski_proc - Trzaskowski_pred)
+
+anomalie %>% 
+  filter(bonf.p < 0.05) %>% 
+  count(Korzytne) 
+anomalie %>% 
+  count(Korzytne)
+
+anomalie %>%
+  filter(bonf.p < 0.05) %>% 
+  summarise(across(c(Trzaskowski_N, Trzaskowski_pred_N, 
+    Duda_N, Duda_pred_N), sum)) %>% 
+  mutate(Trzask = Trzaskowski_N - Trzaskowski_pred_N, 
+    Duda = Duda_N - Duda_pred_N)
+anomalie %>%
+  summarise(across(c(Trzaskowski_N, Trzaskowski_pred_N, 
+    Duda_N, Duda_pred_N), sum)) %>% 
+  mutate(Trzask = Trzaskowski_N - Trzaskowski_pred_N, 
+    Nawr = Duda_N - Duda_pred_N)
+```
+
+```{r}
+#| include: false
+#| eval: false
+
+### 2015
+
+wyb15_lm <- wyb15proc %>% 
+  mutate(Nupr_roznica = (Nupr_2 / Nupr_1 - 1) * 100) %>% #
+  mutate(Frekwencja_roznica =  (N_2 / Nupr_2 - N_1 / Nupr_1) * 100) %>% 
+  mutate(N_roznica = (N_2 - N_1) / N_1 * 100) %>% 
+  filter(
+    N_roznica > -25, N_roznica < 25, ,
+    Nupr_roznica > -25, Nupr_roznica < 25,
+    Frekwencja_roznica > -25, Frekwencja_roznica < 25
+  ) %>%
+  filter(N_2 >= 200)
+
+wyb15_lm %>% 
+  ggplot(aes(Frekwencja_roznica)) +
+  geom_histogram()
+wyb15_lm %>% 
+  ggplot(aes(N_roznica)) + # uwaga!
+  geom_histogram()
+wyb15_lm %>% 
+  ggplot(aes(Nupr_roznica)) +
+  geom_histogram()
+
+m_lm <- lm(Komorowski_2 ~ Braun_1 + Jarubas_1 + Komorowski_1 + Korwin_1 + 
+  Kowalski_1 + Kukiz_1 + Ogórek_1 + Palikot_1 + Tanajno_1 + Wilk_1 +
+  Nupr_roznica + Frekwencja_roznica, data = wyb15_lm)
+summary(m_lm)
+vif(m_lm)
+mean(abs(wyb15_lm$Komorowski_2 - predict(m_lm))) # MAE 2.21
+
+out_test <- car::outlierTest(m_lm, cutoff = Inf, n.max = 2000)
+out_df <- tibble(
+  obs = names(out_test$rstudent),
+  rstudent = out_test$rstudent,
+  p = out_test$p,
+  bonf.p = out_test$bonf.p
+) %>% 
+  filter(p < 0.05)
+out_df %>% filter(bonf.p < 0.05) # 14
+
+anomalie <- wyb15_lm %>%
+  mutate(obs = as.character(row_number())) %>% 
+  mutate(Komorowski_pred = predict(m_lm)) %>% 
+  slice(as.numeric(out_df$obs)) %>% 
+  left_join(out_df, by = "obs") %>% 
+  arrange(desc(abs(rstudent))) %>% 
+  select(Kod, Komisja, Gmina, Siedziba, rstudent, Komorowski_pred,
+    Komorowski_proc = Komorowski_2, Duda_proc = Duda_2, rstudent:bonf.p) %>% 
+  mutate(Korzytne = ifelse(rstudent < 0, "Komorowski", "Duda")) %>% 
+  left_join(wyb15 %>% select(Kod, Komisja, 
+    Komorowski_N = Komorowski_2, Duda_N = Duda_2), by = c("Kod", "Komisja")) %>% 
+  mutate(Komorowski_pred_N = Komorowski_pred/100 * (Komorowski_N + Duda_N)) %>% 
+  mutate(Duda_pred_N = (1 - Komorowski_pred/100) * (Komorowski_N + Duda_N)) %>% 
+  mutate(Różnica_pp = Komorowski_proc - Komorowski_pred)
+
+anomalie %>% 
+  filter(bonf.p < 0.05) %>% 
+  count(Korzytne) 
+anomalie %>% 
+  count(Korzytne)
+
+anomalie %>%
+  filter(bonf.p < 0.05) %>% 
+  summarise(across(c(Komorowski_N, Komorowski_pred_N, 
+    Duda_N, Duda_pred_N), sum)) %>% 
+  mutate(Komor = Komorowski_N - Komorowski_pred_N, 
+    Duda = Duda_N - Duda_pred_N)
+anomalie %>%
+  summarise(across(c(Komorowski_N, Komorowski_pred_N, 
+    Duda_N, Duda_pred_N), sum)) %>% 
+  mutate(Trzask = Komorowski_N - Komorowski_pred_N, 
+    Nawr = Duda_N - Duda_pred_N)
+```
+
+### Dyskusja
+
+Przy pomocy zaproponowanego podejścia jesteśmy w stanie typować komisje, w których z dużym prawdopodobieństwem oficjalne wyniki nie są prawidłowe. W modelu Def mówienie o prawdopodobieństwie jest utrudnione, wnioskowanie odbywa się na ocenie, czy różnica między oficjalnym wynikiem a symulowanym jest "duża". Co więcej, w podejściu z resztami istnieją powszechnie przyjęte progi, przy których uzasadnione jest mówić o anomalii. Dodatkowo, ten próg jest dostosowany do jakości modelu. Jeśli jest dokładny, jesteśmy w stanie wykryć więcej anomalii (mamy większą pewność, że konkretna różnica między prognozą a oficjalnym wynikiem to nie jest kwestia przypadku, ale błędu lub oszustwa).
+
+Drugim problemem z modelem Def (który przy pewnych założeniach może być traktowany jako zaletę, o czym zaraz) jest fakt, że bardzo mocno zależy on od przyjętych parametrów opisujących przepływy, które muszą pochodzić z sondażu. Jeśli nie będą wystarczająco bliskie rzeczywistym, model może zwyczajnie nie działać, wskazując złe komisje. Co gorsza, w konkretnym kierunku, tzn. więcej na korzyść jednego z kandydatów. Moim zdaniem to jest niedopuszczalne.
+
+Zauważmy też, że tak dużo obserwacji odstających wskazanych przez model Def (ponad 1000) oraz brak symetrii w różnicach między prognozą a rzeczywistą wartości są zwykle w statystyce argumentem za tym, że przyjęto złe założenia. Dlatego takie modele nadają się raczej tylko do wskazywania pojedynczych anomalii.
+
+Dodajmy jednak, że przy założeniu, że przyjęte parametry są poprawne, takie podejście umożliwia wykrycie również systemowych oszustw, w znacznie większej liczbie komisji, niż w moim podejściu. W szczególności można oszacować "prawdziwy" wynik wyborów. Ale nie widzę możliwości, byśmy mogli być wystarczając pewni tego założenia i nie zachęcam do stosowania takiego podejścia.
+
+Korzystając z modeli typu regresja, mimo że mamy ograniczone możliwości co do liczby wskazanych odstających komisji, wciąż możemy próbować coś powiedzieć o możliwych problemach systemowych, np. na podstawie ogólnych statystyk dotyczących jakości modelu. Oba modele, dla lat 2020 i 2025, mają bardzo wysokie współczynniki R^2 (prawie 99%). Jeśli w kolejnych wyborach taki współczynnik wyniósłby np. 80%, byłoby to niepokojące.
+
+Na koniec dodajmy, że za anomalię można uznać sam fakt, że np. mocno zmieniła się frekwencja między pierwszą a drugą turą. Mój model w ogóle nie stara się czegoś takiego wykryć, skupiając się na konkretnym rodzaju anomalii: wyniku jednego z kandydatów nie da się wyjaśnić na podstawie wyników pierwszej tury.
+
 ## Referencje
 
 Obliczenia wykonano w języku R, kod dostępny [tutaj](https://github.com/pmszulc/wybory2025_protest){target="_blank"}.
 
+* [Wyniki wyborów 2015](https://prezydent2015.pkw.gov.pl/319_Pierwsze_glosowanie.html){target="_blank"}
 * [Wyniki wyborów 2020](https://prezydent20200628.pkw.gov.pl/prezydent20200628/pl/dane_w_arkuszach){target="_blank"}
 * [Wyniki wyborów 2025](https://wybory.gov.pl/prezydent2025/pl/dane_w_arkuszach){target="_blank"}
 * [Protest](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"}
-* [Benford’s Law and the Detection of Election Fraud](https://www.cambridge.org/core/journals/political-analysis/article/benfords-law-and-the-detection-of-election-fraud/3B1D64E822371C461AF3C61CE91AAF6D) (dlaczego prawo Benforda to kiepskie narzędzie do analizy oszustw wyborczych)
+* [Benford’s Law and the Detection of Election Fraud](https://www.cambridge.org/core/journals/political-analysis/article/benfords-law-and-the-detection-of-election-fraud/3B1D64E822371C461AF3C61CE91AAF6D){target="_blank"} (dlaczego prawo Benforda to kiepskie narzędzie do analizy oszustw wyborczych)
+* [defoliator.pl](https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025){target="_blank"}
 

@@ -1,3 +1,38 @@
+## 2015
+
+# 1. tura
+
+wyb15_obw1 <- readxl::read_excel("data/2015/wyniki_tura1.xls", na = c("", "-"))
+names(wyb15_obw1)[c(8, 25, 26)] <- paste0(c("Nupr", "Nniew", "N"), "_1")
+names(wyb15_obw1)[28:38] <- paste0(c("Braun", "Duda", "Jarubas", "Komorowski",
+  "Korwin", "Kowalski", "Kukiz", "Ogórek", "Palikot", "Tanajno", "Wilk"), "_1") 
+# Kod gminy był podany jako formuła i był problem z wczytaniem, zmodyfikowałem
+# plik excel
+
+wyb15_obw1 <- wyb15_obw1 %>% 
+  rename(Komisja = `Numer obwodu`, Kod = `TERYT gminy`) %>% 
+  select(Kod, Komisja, Gmina, Województwo, Siedziba,
+    Nupr_1, N_1, Nniew_1, Braun_1:Wilk_1) %>% 
+  mutate(Kod = str_remove_all(Kod, fixed("\"")))
+
+# 2. tura
+
+wyb15_obw2 <- readxl::read_excel("data/2015/wyniki_tura2.xls", na = c("", "-"))
+names(wyb15_obw2)[c(5, 22, 23)] <- paste0(c("Nupr", "Nniew", "N"), "_2")
+names(wyb15_obw2)[24:25] <- paste0(c("Duda", "Komorowski"), "_2") 
+
+wyb15_obw2 <- wyb15_obw2 %>% 
+  rename(Komisja = `Numer obwodu`, Kod = `TERYT gminy`) %>% 
+  select(Kod, Komisja, Nupr_2, N_2, Nniew_2, Duda_2, Komorowski_2) %>% 
+  mutate(Kod = str_remove_all(Kod, fixed("\"")))
+
+wyb15 <- full_join(wyb15_obw1, wyb15_obw2) %>% 
+  mutate(across(Nupr_1:Komorowski_2, ~ ifelse(is.na(.), 0, .)))
+
+wyb15proc <- wyb15 %>% 
+  filter(N_1 > 0, N_2 > 0) %>% 
+  mutate(across(Nniew_1:Wilk_1, ~ . / N_1 * 100)) %>%
+  mutate(across(Nniew_2:Komorowski_2, ~ . / N_2 * 100))
 ## 2020
 
 # 1. tura
