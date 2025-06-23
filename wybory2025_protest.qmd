@@ -454,7 +454,7 @@ df %>%
 
 ## Model detekcji anomalii
 
-W ostatniej części analizuję model opublikowany na blogu [defoliator.pl] (https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025){target="_blank"}, który będę nazywał *modelem Def*. Jest to najbardziej zaawansowane podejście do szukania potencjalnych nieprawidłowości i w zasadzie jedyne w proteście, które potencjalnie ma sens. Co więcej, właśnie przy pomocy tego typu modeli wytypowano komisje, w których zamieniono wyniki kandydatów w drugiej turze, co następnie zostało [potwierdzone](https://businessinsider.com.pl/prawo/przeliczanie-kart-wyborczych-zamienione-glosy-w-siedmiu-na-10-sprawdzanych-komisji/jwflnx5){target="_blank"}.
+W ostatniej części analizuję model opublikowany na blogu [defoliator.pl](https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025){target="_blank"}, który będę nazywał *modelem Def*. Jest to najbardziej zaawansowane podejście do szukania potencjalnych nieprawidłowości i w zasadzie jedyne w proteście, które potencjalnie ma sens. Co więcej, właśnie przy pomocy tego typu modeli wytypowano komisje, w których zamieniono wyniki kandydatów w drugiej turze, co następnie zostało [potwierdzone](https://businessinsider.com.pl/prawo/przeliczanie-kart-wyborczych-zamienione-glosy-w-siedmiu-na-10-sprawdzanych-komisji/jwflnx5){target="_blank"}.
 
 Rozumowanie opiera się na założeniu, że na podstawie wyników pierwszej tury w danej komisji oraz ogólnopolskiego (szacowanego) przepływu głosów da się wystarczająco dokładnie przewidzieć wyniki drugiej tury. Na tyle, by wskazać przypadki tak odstające, że rozsądnie jest przeliczyć tam głosy jeszcze raz.
 
