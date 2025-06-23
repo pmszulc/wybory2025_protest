@@ -31,7 +31,9 @@ theme_set(ggpubr::theme_pubr(base_size = 16))
 
 Artykuł jest analizą merytoryczną dowodów, na które powołano się w [proteście wyborczym](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"} przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, wszystkie statystyczne, i jak pokażę, powoływanie się na nie jest błędem.
 
-W ostatniej części analizuję model opisany na stronie defoliator.pl, który rzeczywiście może być użyty do wskazania komisji, w których mogło dojść do naruszeń, natomiast nie pozwala na wyciąganie wniosków, że było ich wiele i głównie na korzyść jednego z kandydatów. Ponadto prezentuję alternatywne podejście do wykrywania takich komisji (anomalii).
+Jeden z dowodów opiera się na modelu opisanym na stronie defoliator.pl, który rzeczywiście może być użyty do wskazania komisji, w których mogło dojść do naruszeń. Jak jednak pokażę, nie pozwala na wyciąganie wniosków, że było ich wiele i głównie na korzyść jednego z kandydatów. Przy okazji omawianie tego modelu zaprezentuję alternatywne podejście do wykrywania takich komisji (anomalii).
+
+W ostatniej części omawiam błędy popełnione w [artykule](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441){target="_blank"} dr. Krzysztofa Kontka. Są one tak poważne, że w mojej ocenie dyskwalifikują zastosowane tam podejście.
 
 Zaznaczam, że jest to analiza konkretnych argumentów i nawet odrzucenie wszystkich nie jest dowodem, że w omawianych wyborach nie doszło do naruszeń, które mogły zmienić wynik wyborów. Mogą istnieć inne argumenty, w szczególności takie, które nie bazują na statystyce.
 
@@ -588,7 +590,7 @@ hist(resid(m_lm_bez_anom))
 e1071::kurtosis(resid(m_lm_bez_anom))
 ```
 
-Poniżej komisje, dla których p-wartość (z korektą Bonferroniego) była mniejsza od 0,05. *Reszta_s* to reszta studentyzowana, przy pomocy której szukam danych odstających, w kolumnie *p* p-wartość (z korektą), *Różnica_pp* to różnica między oficjalnym wynikiem Trzaskowskiego a prognozowanym.
+Poniżej komisje, dla których p-wartość (z korektą Bonferroniego) była mniejsza od 0,05. *Reszta_s* to reszta studentyzowana, przy pomocy której szukam danych odstających, *Różnica_pp* to różnica między oficjalnym wynikiem Trzaskowskiego a prognozowanym.
 
 ```{r}
 anomalie %>% 
@@ -597,6 +599,7 @@ anomalie %>%
   #mutate(p = signif(p, digits = 3)) %>%
   mutate(p = formatC(p, format = "e", digits = 2)) %>% 
   mutate(p = as.character(p)) %>% 
+  rename(`p-wartość` = p) %>% 
   kable(digits = c(NA, 0, 2, NA, 2), align = c("l", rep("r", 4)))
 ```
 
@@ -823,6 +826,40 @@ Korzystając z modeli typu regresja, mimo że mamy ograniczone możliwości co d
 
 Na koniec dodajmy, że za anomalię można uznać sam fakt, że np. mocno zmieniła się frekwencja między pierwszą a drugą turą. Mój model w ogóle nie stara się czegoś takiego wykryć, skupiając się na konkretnym rodzaju anomalii: wyniku jednego z kandydatów nie da się wyjaśnić na podstawie wyników pierwszej tury.
 
+## Artykuł dr. Kontka
+
+Dr. Kontek w swoim [artykule](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441){target="_blank"} używa dość ciekawej metody detekcji anomalii, opierającej się na założeniu, że w geograficznie bliskich komisjach wyborcy głosują podobnie, a przynajmniej brak jest komisji (w "lokalnej grupie"), która odstawałaby od reszty w sposób naturalny. Mimo że mam duży problem z samym tym założeniem, to przyjmijmy, że ma ono sens.
+
+Autor zidentyfikował aż 3679 komisji, w których wystąpiły anomalie (a w mniej konserwatywnej wersji nawet 5453). Już te liczby budzą wątpliwości, bo ta druga stanowi 17% wszystkich analizowanych komisji, więc ciężko tu mówić o “anomaliach”. W modelowaniu statystycznym takie liczby świadczą zwykle o problemach z modelem (przyjęcie błędnych założeń). Model, który zwraca tak dużo anomalii, w pewnym sensie nie może być modelem typującym anomalie.
+
+Skąd tak duże liczby? Autor przyjął tak liberalne kryteria, że nawet lekkie niepodobieństwo skutkuje zakwalifikowaniem wyników w danej komisji jako anomalii, co postaram się wykazać.
+
+### 1
+
+Grupy komisji zostały tak zdefiniowane, że ich wielkość w większości przypadków zawiera się w przedziale 10-16 (są to więc małe grupy). Dla każdej komisji jest liczona pewna cecha, np. "poparcie dla Nawrockiego". Jeśli to poparcie jest "nadmiernie" większe, niż w bliskich komisjach, jest to anomalia.
+
+Według autora, nadmierne poparcie jest wtedy, kiedy po pewnej standaryzacji jest większe od ustalonego progu: 2, 2,5 lub 3 (ten ostatni próg autor traktuje jako "konserwatywne" podejście). Standaryzacja polega na tym, że od wyniku w danej komisji odejmuje się medianę z grupy, a następnie dzieli przez rozrzut w tej grupie, liczony jako MAD (mediana odchyleń bezwzględnych). Jest to alternatywa dla odchylenia standardowego, stosowana czasem dla niesymetrycznych rozkładów. Procedura przypomina zastosowanie tzw. *reguły trzech sigm*: w standardowym rozkładzie normalnym mamy jedynie ok. 0,13% wartości, które są większe od 3, przez co w niektórych zastosowaniach można takie wartości potraktować jako anomalie.
+
+Pierwszy problem polega na tym, że ta reguła nie działa dla MAD. Należy przynajmniej uwzględnić, że np. dla rozkładu normalnego MAD jest ok. [1,5 razy mniejsze od SD](https://en.wikipedia.org/wiki/Median_absolute_deviation#Relation_to_standard_deviation){target="_blank"}. Innymi słowy, rzekomo konserwatywne podejście z progiem 3 wcale takie nie jest, bo de facto jest on równy 2. Takich "odstających" obserwacji jest w rozkładzie normalnym ok. 2%, co daje prawie 700 komisji uznanych za anomalie, mimo że oczywiście takimi nie są. Co więcej, w rzeczywistości rozkład wyników na pewno nie jest normalny, a np. w rozkładzie lognormalnym takich rzekomo odstających komisji będzie 21,5%, czyli prawie 7000.
+
+Co prawda w pewnych sytuacjach rozkład może być taki, że obserwacji powyżej ustalonego powinno być mniej, w pracy nie ma jednak żadnego uzasadnienia, że mamy do czynienia z taką sytuacją. Autor po prostu przyjmuje sobie pewne liczby (najprawdopodobniej błędnie łącząc je z regułą trzech sigm) i w ogóle tego nie komentuje, co jest niedopuszczalne.
+
+Istnieje też pewna szansa, że ten współczynnik 1,5 został uwzględniony w obliczeniach (np. w języku R jest stosowany domyślnie), ale w pracy nie ma żadnej wzmianki na ten temat, a w definicji MAD żaden taki parametr nie występuje.
+
+### 2
+
+Drugi problem polega na tym, że nawet jeśli przyjąć bardziej rygorystyczne podejście (większy próg niż 3), mamy tu do czynienia z tzw. [problemem porównań wielokrotnych](https://danetyka.com/problem-wielokrotnego-testowania/){target="_blank"}. Z tego właśnie powodu w modelu, który sam zaproponowałem w poprzedniej części, zastosowałem poprawkę na wielokrotne testowanie. Nieuwzględnienie tego problemu jest błędem i autor popełnia go podwójnie. Po pierwsze, dokonuje ponad 30 tysięcy porównań (każda komisja), nie uwzględniając tego faktu w przyjętym progu. Po drugie, sprawdza niezależnie cztery cechy mające świadczyć o anomalii i ostatecznie raportuje wszystkie przypadki, dla których choć jedna z nich miałaby świadczyć o anomalii (tzn. w pracy jest to rozbite, ale wnioski są wyciąganie na podstawie sumy).
+
+### 3
+
+Spójrzmy jeszcze, jakie cechy bada autor. Jedna z nich jest nazwana "flip" i nie ma nic wspólnego z wyżej podaną standaryzacją i progami. Autor za anomalię uznaje każdy przypadek, w którym "Nawrocki wygrywa lokalnie, mimo że mediana wyników w grupie wskazuje przewagę Trzaskowskiego". Szczerze mówiąc, ciężko to skomentować. Załóżmy, że procenty poparcia dla Nawrockiego w danej grupie wynoszą: 45, 46, 47, 48, 49, 51, 52, 53, 54. Mediana wynosi 49%, więc "mediana wyników w grupie wskazuje przewagę Trzaskowskiego", a zatem te cztery (!) komisje, w których Nawrockich otrzymał ponad 50% to anomalie.
+
+Oczywiście gdyby za anomalie traktować komisje, dla których np. wartości co najmniej trzech cech są odstające, to wtedy uwzględnienie powyższej miałoby sens. Ale jak pisałem, wystarczy jedna. I ta opisywana jest odpowiedzialna za ponad połowę (!) wskazań.
+
+Dodam, że algorytm wyznacza jedynie anomalie na korzyść Nawrockiego. Nie ma żadnej wzmianki o tym, jakie wyniki otrzymamy, gdyby przeprowadzić podobną analizę na korzyść Trzaskowskiego. Ogólnie nie wiemy, jak powinien wyglądać rozkład liczonych statystyk przy założeniu, że w wyborach nie było żadnych fałszerstw (może właśnie tak, jak wygląda).
+
+Podsumowując, praca autora miałaby sens tylko w przypadku, gdybyśmy wiedzieli, że wybory zostały sfałszowane na masową skalę (tzn. w bardzo dużej liczbie komisji podano nieprawdziwe wyniki). Wtedy zaprezentowany algorytm mógłby pomóc we wskazaniu komisji, w których miało to miejsce. Ale przecież to jest teza, którą autor chce wykazać.
+
 ## Referencje
 
 Obliczenia wykonano w języku R, kod dostępny [tutaj](https://github.com/pmszulc/wybory2025_protest){target="_blank"}.
@@ -833,4 +870,4 @@ Obliczenia wykonano w języku R, kod dostępny [tutaj](https://github.com/pmszul
 * [Protest](https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic){target="_blank"}
 * [Benford’s Law and the Detection of Election Fraud](https://www.cambridge.org/core/journals/political-analysis/article/benfords-law-and-the-detection-of-election-fraud/3B1D64E822371C461AF3C61CE91AAF6D){target="_blank"} (dlaczego prawo Benforda to kiepskie narzędzie do analizy oszustw wyborczych)
 * [defoliator.pl](https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025){target="_blank"}
-
+* [Dr. Krzysztof Kontek](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441){target="_blank"}
