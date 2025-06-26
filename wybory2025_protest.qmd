@@ -81,6 +81,7 @@ Na poniższym wykresie porównanie z rozkładem Benforda dla liczby uprawnionych
 wyb25 %>% 
   filter(Nupr_2 > 0) %>% 
   benford1("Nupr_2", "Liczba uprawnionych do głosowania, 2. tura 2025", limit = NA)
+# ggsave("DB/benford_Nupr.png", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 ### Liczba głosów
@@ -89,6 +90,7 @@ Mimo powyższych wątpliwości (które moim zdaniem są wystarczające), przejd�
 
 ```{r}
 benford1(wyb25, "Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025", limit = NA)
+# ggsave("DB/benford_Nawr.png", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 Odstępstwo jest bardzo duże, co ma świadczyć o tym, że "manipulacje dotyczyły wyników tego kandydata" (cytat z protestu). Porównajmy z liczbą głosów na Trzaskowskiego.
@@ -101,6 +103,7 @@ Odstępstwo już również duże, choć mniejsze. Zaraz pokażę, z czego to wyn
 
 ```{r}
 benford1(wyb20, "Duda_2", "Liczba głosów, Duda, 2. tura 2020", limit = NA)
+# ggsave("DB/benford_Duda.png", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 Jeśli brak zgodności z tym rozkładem miałby świadczyć o manipulacjach, to wygląda na to, że w poprzednich wyborach były znacznie większe. Tak naprawdę musiałyby być systemowe (w większości komisji).
