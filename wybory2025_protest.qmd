@@ -78,10 +78,12 @@ wyb25 %>%
 Na poniższym wykresie porównanie z rozkładem Benforda dla liczby uprawnionych. Jak widać, rozkład ten nie ma tutaj zastosowania (zgodnie z przewidywaniami, cyfra 1 występuje zdecydowanie zbyt często). Stąd moim zdaniem nie mamy prawa zakładać, że przy tylko dwóch kandydatach liczba głosów na któregoś z nich będzie z takim rozkładem zgodna.
 
 ```{r}
+#CairoPDF("DB/benford_Nupr.pdf", width = 7, height = 5)
 wyb25 %>% 
   filter(Nupr_2 > 0) %>% 
-  benford1("Nupr_2", "Liczba uprawnionych do głosowania, 2. tura 2025", limit = NA)
-# ggsave("DB/benford_Nupr.png", dpi = 150, bg = "white", width = 7, height = 5)
+  benford1("Nupr_2", "Liczba uprawnionych, druga tura 2025", limit = NA)
+#dev.off()
+# ggsave("DB/benford_Nupr.pdf", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 ### Liczba głosów
@@ -89,8 +91,10 @@ wyb25 %>%
 Mimo powyższych wątpliwości (które moim zdaniem są wystarczające), przejdźmy do analizy liczby głosów. Poniżej rozkład pierwszej cyfry dla Nawrockiego w 2. turze. To ten wykres pojawia się w proteście wyborczym.
 
 ```{r}
-benford1(wyb25, "Nawrocki_2", "Liczba głosów, Nawrocki, 2. tura 2025", limit = NA)
-# ggsave("DB/benford_Nawr.png", dpi = 150, bg = "white", width = 7, height = 5)
+#CairoPDF("DB/benford_Nawr.pdf", width = 7, height = 5)
+benford1(wyb25, "Nawrocki_2", "Liczba głosów, Nawrocki, druga tura 2025", limit = NA)
+#dev.off()
+#ggsave("DB/benford_Nawr.pdf", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 Odstępstwo jest bardzo duże, co ma świadczyć o tym, że "manipulacje dotyczyły wyników tego kandydata" (cytat z protestu). Porównajmy z liczbą głosów na Trzaskowskiego.
@@ -102,8 +106,10 @@ benford1(wyb25, "Trzaskowski_2", "Liczba głosów, Trzaskowski, 2. tura 2025", l
 Odstępstwo już również duże, choć mniejsze. Zaraz pokażę, z czego to wynika, ale sprawdźmy jeszcze, czy liczba głosów oddanych na Dudę w poprzednich wyborach jest zgodna z rozkładem Benforda.
 
 ```{r}
-benford1(wyb20, "Duda_2", "Liczba głosów, Duda, 2. tura 2020", limit = NA)
-# ggsave("DB/benford_Duda.png", dpi = 150, bg = "white", width = 7, height = 5)
+#CairoPDF("DB/benford_Duda.pdf", width = 7, height = 5)
+benford1(wyb20, "Duda_2", "Liczba głosów, Duda, druga tura 2020", limit = NA)
+#dev.off()
+# ggsave("DB/benford_Duda.pdf", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 Jeśli brak zgodności z tym rozkładem miałby świadczyć o manipulacjach, to wygląda na to, że w poprzednich wyborach były znacznie większe. Tak naprawdę musiałyby być systemowe (w większości komisji).
@@ -146,8 +152,9 @@ Podsumowując, liczba głosów rzeczywiście znacznie odbiega od rozkładu Benfo
 
 ```{r}
 wyb25 <- wyb25 %>% 
-  mutate(Frekwencja_1 = N_1 / Nupr_1 * 100) %>% 
-  mutate(Frekwencja_2 = N_2 / Nupr_2 * 100) %>% 
+  # we wcześniejszej analizie nie uwzględniałem głosów nieważnych
+  mutate(Frekwencja_1 = (N_1 + Nniew_1) / Nupr_1 * 100) %>% 
+  mutate(Frekwencja_2 = (N_2 + Nniew_2) / Nupr_2 * 100) %>% 
   mutate(Frekwencja_1_zaokr = round(Frekwencja_1)) %>% 
   mutate(Frekwencja_2_zaokr = round(Frekwencja_2))
 ```
@@ -155,12 +162,13 @@ wyb25 <- wyb25 %>%
 Poniższy wykres prezentuje rozkład frekwencji w drugiej turze: w ilu komisjach odnotowano daną frekwencję, po zaokrągleniu do jednego procentu. W większości komisji zagłosowało od 60% do 80% uprawnionych.
 
 ```{r}
+#CairoPDF("DB/ruski_ogon1.pdf", width = 7, height = 5)
 wyb25 %>% 
   count(Frekwencja_2_zaokr) %>% 
   ggplot(aes(Frekwencja_2_zaokr, n)) +
   geom_point(alpha = 0.8) +
   geom_line()  +
-  labs(x = "Frekwencja, 2. tura", y = "Liczba komisji") +
+  labs(x = "Frekwencja, druga tura", y = "Liczba komisji") +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -169,6 +177,8 @@ wyb25 %>%
   scale_x_continuous(labels = percent_format(scale = 1), 
     breaks = seq(0, 100, by = 20)) +
   scale_y_continuous(limits = c(0, NA))
+#dev.off()
+#ggsave("DB/ruski_ogon1.pdf", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
 Według autorów protestu wyborczego, na tym wykresie ma być widać tzw. "ruski ogon", czyli nadwyżkę komisji z bardzo wysoką frekwencją, bliską 100%. Ma być to "sygnałem możliwych korekt kart lub innych anomalii w procesie wyborczym".
@@ -176,13 +186,14 @@ Według autorów protestu wyborczego, na tym wykresie ma być widać tzw. "ruski
 Przybliżmy wykres, skupiając się na jego prawym ogonie (frekwencja co najmniej 90%).
 
 ```{r}
+#CairoPDF("DB/ruski_ogon2.pdf", width = 7, height = 5)
 wyb25 %>% 
   count(Frekwencja_2_zaokr) %>% 
   filter(Frekwencja_2_zaokr >= 90) %>% 
   ggplot(aes(Frekwencja_2_zaokr, n)) +
   geom_point(size = 2.6, alpha = 0.8) +
   geom_line(linewidth = 1.3)  +
-  labs(x = "Frekwencja, 2. tura", y = "Liczba komisji") +
+  labs(x = "Frekwencja, druga tura", y = "Liczba komisji") +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -190,43 +201,43 @@ wyb25 %>%
   ) +
   scale_x_continuous(labels = percent_format(scale = 1), 
     breaks = seq(90, 100, by = 1)) +
-  scale_y_continuous(limits = c(0, NA))
+  scale_y_continuous(limits = c(0, NA), breaks = seq(0, 120, by = 20))
+#dev.off()
+#ggsave("DB/ruski_ogon2.pdf", dpi = 150, bg = "white", width = 7, height = 5)
 ```
 
-Rzeczywiście, wydaje się, że jest pewna nadreprezentacja komisji z frekwencją co najmniej 99% (liczba komisji dla 98% odpowiada tempu spadku). Są 83 takie komisje. 
+Rzeczywiście, wydaje się, że jest pewna nadreprezentacja komisji z frekwencją 100% po zaokrągleniu (liczba komisji dla 99% odpowiada tempu spadku). Jest 119 takich komisji. 
 
 ```{r}
 #| include: false
 
 wyb25 %>% 
-  filter(Frekwencja_2_zaokr >= 99) %>% # 83 komisje
+  filter(Frekwencja_2_zaokr == 100) %>% # 119 komisji
   mutate(Wysoka_frekw_1 = Frekwencja_1 >= 90) %>% 
   count(Wysoka_frekw_1) # połowa z nich miała wysoką frekwencję w 1. turze
 
 wyb25 %>% 
-  filter(Frekwencja_2_zaokr >= 99) %>%
+  filter(Frekwencja_2_zaokr >= 100) %>%
   summarise(mean(Nupr_2 < 100)) # ponad połowa < 100
 ```
 
-Zacznijmy od tego, że w połowie z nich frekwencja w pierwszej turze również była bardzo wysoka (powyżej 90%). Po drugie, ponad połowa z nich to komisje z liczbą uprawnionych poniżej 100. Po trzecie, spójrzmy, co to za komisje:
+Zacznijmy od tego, że w ponad połowie z nich frekwencja w pierwszej turze również była bardzo wysoka (powyżej 90%). Po drugie, 63% z nich to komisje z liczbą uprawnionych poniżej 100. Po trzecie, spójrzmy, co to za komisje:
 
 ```{r}
 wyb25 %>% 
-  filter(Frekwencja_2_zaokr >= 99) %>%
+  filter(Frekwencja_2_zaokr >= 100) %>%
   count(Typ_obwodu, sort = TRUE) %>% 
   set_names(c("Typ komisji", "N")) %>% 
   kable()
 ```
 
-Oczywiście nie ma w tym nic dziwnego, że w zakładach leczniczych i DPSach frekwencja może być bardzo wysoka (powodów jest wiele, między innymi wszystkie osoby są często na miejscu). W przypadku komisji zagranicznych wyborcy specjalnie muszą się zapisać, więc wysoka frekwencja też jest naturalna (we wszystkich tych komisjach w 1. turze też taka była). Zostały stałe komisje, ale zauważmy, że tylko część komisji z bardzo wysoką frekwencją można uznać za "nadmiarowe". Patrząc na poprzedni wykres, "naturalną" liczbę komisji o frekwencji 99% lub 100% można oszacować na kilkanaście.
-
-Innymi słowy, wszystko wygląda tak, jak powinno wyglądać. Dodam, że gdyby wybory odbyły się tylko w tych "podejrzanych" komisjach, Trzaskowski otrzymałby ok. 63% głosów (a 65% w komisjach z frekwencją co najmniej 90%).
+Oczywiście nie ma w tym nic dziwnego, że w zakładach leczniczych i DPSach frekwencja może być bardzo wysoka (powodów jest wiele, między innymi wszystkie osoby są często na miejscu). W przypadku komisji zagranicznych wyborcy specjalnie muszą się zapisać, więc wysoka frekwencja też jest naturalna (we wszystkich tych komisjach w pierwszej turze też taka była). Zostało 10 stałych komisji, ale zauważmy, że tylko część komisji z bardzo wysoką frekwencją można uznać za "nadmiarowe". Poza tym, gdyby wybory odbyły się tylko w tych "podejrzanych" stałych komisjach, Trzaskowski otrzymałby ok. 62% głosów (a 68% we wszystkich komisjach z frekwencją co najmniej 90%).
 
 ```{r}
 #| include: false
 
 wyb25 %>% 
-  filter(Frekwencja_2_zaokr >= 99) %>% 
+  filter(Frekwencja_2_zaokr >= 100, Typ_obwodu == "stały") %>% 
   summarise(across(c(Nawrocki_2, Trzaskowski_2), sum)) %>% 
   pivot_longer(everything()) %>% 
   mutate(prop = value / sum(value) * 100)
