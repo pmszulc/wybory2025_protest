@@ -2553,17 +2553,7 @@ vertical-align: -.125em;
   </ul></li>
   <li><a href="#ruski-ogon" id="toc-ruski-ogon" class="nav-link" data-scroll-target="#ruski-ogon">Ruski ogon</a></li>
   <li><a href="#głosy-nieważne" id="toc-głosy-nieważne" class="nav-link" data-scroll-target="#głosy-nieważne">Głosy nieważne</a></li>
-  <li><a href="#model-detekcji-anomalii" id="toc-model-detekcji-anomalii" class="nav-link" data-scroll-target="#model-detekcji-anomalii">Model detekcji anomalii</a>
-  <ul class="collapse">
-  <li><a href="#mój-model" id="toc-mój-model" class="nav-link" data-scroll-target="#mój-model">Mój model</a></li>
-  <li><a href="#dyskusja" id="toc-dyskusja" class="nav-link" data-scroll-target="#dyskusja">Dyskusja</a></li>
-  </ul></li>
-  <li><a href="#artykuł-dr.-kontka" id="toc-artykuł-dr.-kontka" class="nav-link" data-scroll-target="#artykuł-dr.-kontka">Artykuł dr. Kontka</a>
-  <ul class="collapse">
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">1</a></li>
-  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">2</a></li>
-  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">3</a></li>
-  </ul></li>
+  <li><a href="#model-detekcji-anomalii" id="toc-model-detekcji-anomalii" class="nav-link" data-scroll-target="#model-detekcji-anomalii">Model detekcji anomalii</a></li>
   <li><a href="#referencje" id="toc-referencje" class="nav-link" data-scroll-target="#referencje">Referencje</a></li>
   </ul>
 </nav>
@@ -2594,9 +2584,8 @@ vertical-align: -.125em;
 </header>
 
 <p>Artykuł jest analizą merytoryczną dowodów, na które powołano się w <a href="https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic" target="_blank">proteście wyborczym</a> przeciwko ważności wyborów Prezydenta RP przeprowadzonych w dniu 1 czerwca 2025 roku. Jest ich kilka, wszystkie statystyczne, i jak pokażę, powoływanie się na nie jest błędem.</p>
-<p>Jeden z dowodów opiera się na modelu opisanym na stronie defoliator.pl, który rzeczywiście może być użyty do wskazania komisji, w których mogło dojść do naruszeń. Jak jednak pokażę, nie pozwala na wyciąganie wniosków, że było ich wiele i głównie na korzyść jednego z kandydatów. Przy okazji omawianie tego modelu zaprezentuję alternatywne podejście do wykrywania takich komisji (anomalii).</p>
-<p>W ostatniej części omawiam błędy popełnione w <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441" target="_blank">artykule</a> dr. Krzysztofa Kontka. Są one tak poważne, że w mojej ocenie dyskwalifikują zastosowane tam podejście.</p>
-<p>Zaznaczam, że jest to analiza konkretnych argumentów i nawet odrzucenie wszystkich nie jest dowodem, że w omawianych wyborach nie doszło do naruszeń, które mogły zmienić wynik wyborów. Mogą istnieć inne argumenty, w szczególności takie, które nie bazują na statystyce.</p>
+<p>Jeden z dowodów opiera się na modelu opisanym na stronie defoliator.pl, który rzeczywiście może być użyty do wskazania komisji, w których mogło dojść do naruszeń. Jak jednak pokażę, nie pozwala na wyciąganie wniosków, że było ich wiele i głównie na korzyść jednego z kandydatów. Przy okazji zaprezentuję swoje podejście do budowy tego typu modeli.</p>
+<p>Dodatkowo w <a href="https://danetyka.com/kontek-analiza-bledow/" target="_blank">tym artykule</a> omawiam błędy popełnione przez dr. Krzysztofa Kontka w jego modelu detekcji anomalii.</p>
 <section id="rozkład-benforda" class="level2">
 <h2 class="anchored" data-anchor-id="rozkład-benforda">Rozkład Benforda</h2>
 <p>Przy pewnych założeniach, częstość występowania pierwszych cyfr w liczbach rozkłada się w pewien określony sposób: cyfra 1 występuje w około 30,1% przypadkach, cyfra 2 17,6% itd. Główne założenia:</p>
@@ -2819,387 +2808,22 @@ vertical-align: -.125em;
 </section>
 <section id="model-detekcji-anomalii" class="level2">
 <h2 class="anchored" data-anchor-id="model-detekcji-anomalii">Model detekcji anomalii</h2>
-<p>W ostatniej części analizuję model opublikowany na blogu <a href="https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025" target="_blank">defoliator.pl</a>, który będę nazywał <em>modelem Def</em>. Jest to najbardziej zaawansowane podejście do szukania potencjalnych nieprawidłowości i w zasadzie jedyne w proteście, które potencjalnie ma sens. Co więcej, właśnie przy pomocy tego typu modeli wytypowano komisje, w których zamieniono wyniki kandydatów w drugiej turze, co następnie zostało <a href="https://businessinsider.com.pl/prawo/przeliczanie-kart-wyborczych-zamienione-glosy-w-siedmiu-na-10-sprawdzanych-komisji/jwflnx5" target="_blank">potwierdzone</a>.</p>
+<p>W tej części analizuję model opublikowany na blogu <a href="https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025" target="_blank">defoliator.pl</a>, który będę nazywał <em>modelem Def</em>. Jest to najbardziej zaawansowane podejście do szukania potencjalnych nieprawidłowości i w zasadzie jedyne w proteście, które potencjalnie ma sens. Co więcej, właśnie przy pomocy tego typu modeli wytypowano komisje, w których zamieniono wyniki kandydatów w drugiej turze, co następnie zostało <a href="https://businessinsider.com.pl/prawo/przeliczanie-kart-wyborczych-zamienione-glosy-w-siedmiu-na-10-sprawdzanych-komisji/jwflnx5" target="_blank">potwierdzone</a>.</p>
 <p>Rozumowanie opiera się na założeniu, że na podstawie wyników pierwszej tury w danej komisji oraz ogólnopolskiego (szacowanego) przepływu głosów da się wystarczająco dokładnie przewidzieć wyniki drugiej tury. Na tyle, by wskazać przypadki tak odstające, że rozsądnie jest przeliczyć tam głosy jeszcze raz.</p>
 <p>Autor przyjmuje pewien próg, przy którym uznaje, że wyniku drugiej tury nie da się wyjaśnić wynikiem pierwszej. Na tej podstawie kwalifikuje ok. 1000 komisji jako anomalie. Co ważne, okazuje się, że nie ma w nich symetrii: w 80% z nich potencjalne pomyłki wystąpiły na korzyść Nawrockiego, a w 20% Trzaskowskiego.</p>
-<p>Najważniejsze problemy z modelem Def podam w podsumowaniu, bo najłatwiej będzie je zrozumieć, gdy najpierw zaprezentuję swój model. Który, jak się okaże, daje zupełnie inne wyniki: co najwyżej kilkadziesiąt komisji, które można uznać za anomalie, oraz symetryczny ich rozkład (podobna liczba z korzyścią dla Trzaskowskiego i Nawrockiego)</p>
-<p>Zacznę od uwagi ogólnej, którą można podsumować pytaniem: któremu modelowi zaufać? Ja oczywiście bardziej ufam swojemu, bo po pierwsze wiem, jak został skonstruowany, po drugie moim zdaniem jest obiektywnie lepszy. Natomiast to nie jest wystarczający argument. Co więcej, nie ufam swojemu modelowi na tyle, żeby posłużył do jakichkolwiek rekomendacji. Moim zdaniem do tego trzeba podejść inaczej:</p>
+<p>Tutaj prezentuję <a href="https://danetyka.com/model-detekcji-anomalii/" target="_blank">moje podejście</a>, przy pomocy którego doszedłem do zupełnie innych wniosków: co najwyżej kilkadziesiąt komisji, które można uznać za anomalie, oraz symetryczny ich rozkład (podobna liczba z korzyścią dla Trzaskowskiego i Nawrockiego). I zacznę od uwagi ogólnej, którą można podsumować pytaniem: któremu modelowi zaufać? Ja oczywiście bardziej ufam swojemu, bo po pierwsze wiem, jak został skonstruowany, po drugie moim zdaniem jest obiektywnie lepszy. Natomiast to nie jest wystarczający argument, jeśli taki model miałby być w praktyce wykorzystywany. Moim zdaniem do tego trzeba podejść inaczej:</p>
 <ol type="1">
 <li><p>Model powinien być poddany testom. W szczególności: jakich wyników oczekujemy przy założeniu, że wybory są całkowicie pozbawione pomyłek? Czy model nie jest obciążony w kierunku jednego z kandydatów? (np. łatwiej wykrywa anomalie na jego korzyść, bo wygrywa on zwykle w mniejszych komisjach, z większą przewagą itp.) Jak model się zachowa, gdy nie będą spełnione pewne przyjęte założenia? Jeśli model zależy od ustalanych przez użytkownika parametrów, to w jakim stopniu zmienią się wyniki, jeśli wprowadzimy inne parametry?</p></li>
 <li><p>Model powinien zostać zrecenzowany przez profesjonalistów, być może opublikowany w czasopiśmie naukowym. Z publikacją widzę pewien problem, bo jeśli model będzie zależał tylko (lub w głównej mierze) od wyników pierwszej tury, to każdy będzie mógł go zbudować, wykonać prognozę wyników drugiej tury, a następnie dokonać takich fałszerstw, które nie będą znacząco odbiegały od prognoz, co uniemożliwi ich detekcję. Mimo wszystko transparentność modelu wydaje mi się ważniejsza. Poza tym to kwestia tego, jaki model zostanie zaproponowany, tzn. może być odporny na takie wykorzystanie. Prezentowanego przeze mnie modelu nie da się zbudować bez znajomości wyników drugiej tury.</p></li>
 <li><p>Metoda konstrukcji modelu powinna być znana przed wyborami. Sam model najpewniej będzie bazował na danych z wyborów, więc nie da się go wcześniej zbudować, natomiast ogólny algorytm, jak to zrobić, powinien być ustalony. Ma to zapobiec sytuacji, w których osoba odpowiedzialna za budowę modelu przyjmuje takie założenia (np. takie wartości parametrów), żeby wpłynąć na to, co model zwraca.</p></li>
-<li><p>Powinno się wcześniej ustalić, jak reagować na wyniki modelu. Załóżmy na przykład, że model wskazuje 30 nieprawidłowości, co do których mamy bardzo duży stopień pewności. Zostają one zweryfikowane przez ponowne liczenie głosów. Jeśli większość się potwierdzi, przechodzimy do mniej pewnych przypadków, lub zarządzamy ponowne liczenie głosów w <em>N</em> losowo wybranych komisjach (liczba do ustalenia). Moim zdaniem podejście z losowaniem można stosować zawsze, niezależnie od tego, czy są jakiekolwiek podejrzenia. Ponieważ mamy listę wszystkich komisji i do każdej możemy dotrzeć, otrzymamy próbę losową i możemy wykorzystać klasyczne wnioskowanie z próby na populację. W ten sposób nie wykryjemy pojedynczych anomalii, ale systematyczne oszustwa, które stanowią większy problem.</p></li>
+<li><p>Powinno się wcześniej ustalić, jak reagować na wyniki modelu. Załóżmy na przykład, że model wskazuje 30 nieprawidłowości, co do których mamy bardzo duży stopień pewności. Zostają one zweryfikowane przez ponowne liczenie głosów. Jeśli większość się potwierdzi, przechodzimy do mniej pewnych przypadków, lub zarządzamy ponowne liczenie głosów w <em>N</em> losowo wybranych komisjach (liczba do ustalenia). Ponieważ mamy listę wszystkich komisji i do każdej możemy dotrzeć, otrzymamy próbę losową i możemy wykorzystać klasyczne wnioskowanie z próby na populację. W ten sposób nie wykryjemy pojedynczych anomalii, ale systematyczne oszustwa, które stanowią większy problem.</p></li>
 </ol>
-<p>Dodam, że takie modele są już dostępne, odsyłam np. <a href="https://websites.umich.edu/~wmebane/" target="_blank">tutaj</a>. Natomiast w przypadku polskich wyborów lepsze mogą okazać się inne podejścia.</p>
-<section id="mój-model" class="level3">
-<h3 class="anchored" data-anchor-id="mój-model">Mój model</h3>
-<p>Przejdę teraz do opisu swojego modelu, jeszcze raz zastrzegając, że <strong>moim głównym celem jest pokazanie, że można zbudować inny, którego wyniki będą inne</strong>. Oczywiście nie próbowałem metodą prób i błędów dojść do takiego, który zwróci inne wyniki. Przeciwnie: zastosowałem standardowe podejście i uważam, że uzyskany model jest dokładniejszy od modelu Def.</p>
-<p>Dodam, że choć nieprawidłowości wskazane przez mój model są symetryczne, to wciąż wiele z nich w mojej ocenie JEST nieprawidłowościami. Przypuszczam, że model Def też zwrócił te komisje, ale oprócz tego, w wyniku przyjętych błędnych założeń, znacznie więcej, na dodatek w konkretną stronę.</p>
-<p>Kod, przy pomocy którego buduję model, jest dostępny <a href="https://github.com/pmszulc/wybory2025_protest" target="_blank">tutaj</a>, więc jeśli ktoś zna język R, może przeanalizować, w jaki sposób go buduję. Poniżej najważniejsze jego cechy.</p>
-<ol type="1">
-<li><p>Rozważam tylko komisje, w których w drugiej turze zagłosowało co najmniej 200 osób (oszustwa w mniejszych są raczej nie do wykrycia). Oprócz tego pominąłem komisje, w których nastąpił duży skok/spadek frekwencji (co najmniej 25 p.p.), liczby uprawnionych (25%) lub liczby głosujących (25%; to nie jest to samo, co różnica we frekwencji, bo liczba uprawnionych może się zmieniać). Jeśli w drugiej turze głosowały inne osoby niż w pierwszej, to różnice w wynikach mogą wynikać właśnie z tego (to oczywiście samo w sobie może być anomalią, więcej o tym później).</p></li>
-<li><p>Sprawdzałem, jak model się zachowa, jeśli zmienię każdy z tych parametrów (na wypadek przyjęcia przeze mnie błędnych założeń). Na przykład minimalna liczba głosujących została zmieniona na 100, 500, łącznie z przypadkiem, gdy nie ograniczałem się w żaden sposób (również co do pozostałych parametrów). Oczywiście miało to wpływ na liczbę wskazanych komisji, ale nie na symetrię oraz tylko minimalny wpływ na współczynniki modelu. Liczba wskazanych komisji się zwiększyła, bo po poluzowaniu ograniczeń dopuszczam więcej takich, w których różnice między pierwszą a drugą drugą da się łatwo wyjaśnić (np. niewielką liczbą głosujących).</p></li>
-<li><p>Dopasowuję model regresji liniowej, w której zmienną zależną jest procent głosów oddanych na Trzaskowskiego w drugiej turze, a zamiennymi niezależnymi wyniki procentowe każdego z kandydatów w pierwszej turze (oprócz Nawrockiego, bo jest on liniowo zależny od pozostałych) oraz różnica we frekwencji (p.p.) i liczbie uprawnionych (%). Pominąłem różnicę w liczbie głosujących, bo wynika z pozostałych.</p></li>
-<li><p>Nie ma znaczenia, czy pominę wynik Nawrockiego, czy innego kandydata (zostało to sprawdzone). Ważne tylko, by nie był to ktoś, kto otrzymał bardzo mało głosów, bo wtedy pominięcie go nie zlikwiduje współliniowości. Dopasowałem też model, w której zmienną zależną był wynik Nawrockiego w drugiej turze, a nie Trzaskowskiego, i otrzymałem te same wyniki (ale to wynika z matematyki). W modelu uwzględniam różnicę we frekwencji i liczbie uprawnionych, gdyż część różnic można wyjaśnić właśnie tymi zmiennymi. Natomiast ich wpływ jest niewielki, w szczególności sprawdziłem, że pominięcie ich nie zmienia wyników.</p></li>
-<li><p>Współczynnik R^2 dla modelu wynosi 98,5%, średni błąd bezwzględny 1,5 p.p. (prognozując wyniki drugiej na podstawie pierwszej, mylimy się średnio jedynie o 1,5 p.p.). Czyli model jest bardzo dokładny, natomiast nie ma możliwości, by nadmiernie dopasował się do dodanych (to uniemożliwiłoby detekcję anomalii), bo jest bardzo mało elastyczny (regresja liniowa, 14 zmiennych niezależnych).</p></li>
-<li><p>Model bazuje na wynikach kandydatów, których nie ma w drugiej turze, więc w pewnym sensie szacuje przepływy głosów. Zakłada on jednak, że są one takie same w całej Polsce (np. w każdej gminie), co prawie na pewno nie jest prawdą. To powoduje, że część anomalii wykrytych przez taki model może dać się wyjaśnić przez inny przepływ głosów akurat w tym miejscu. Zbudowałem dodatkowy modelu, w którym dla każdego województwa przepływy mogły być inne (interakcja wszystkich zmiennych z województwem), ale wpływ na wyniki był minimalny. Schodzenie niżej, na poziom powiatów lub gmin, jest już problematyczne, bo bardzo mocno rośnie liczba parametrów, więc model może nadmiernie dopasować się do danych.</p></li>
-<li><p>Anomalie są wskazywane na podstawie reszt z modelu (studentyzowanych). Reszta dodatnia oznacza, że oficjalny wynik Trzaskowskiego jest większy niż prognozowany, a takim razie – jeśli jest to wynik pomyłki lub oszustwa – jest ona na jego korzyść. Jeśli reszta jest ujemna, potencjalna pomyłka lub oszustwo były na korzyść Nawrockiego. Ponieważ wiemy, jak takie reszty powinny się rozkładać (rozkład t-Studenta; przy założeniu poprawnej specyfikacji modelu), możemy dla każdej z nich policzyć p-wartość. W uproszczeniu, przy jej pomocy możemy określić komisje, którym wynik drugiej tury jest ekstremalnie mało prawdopodobny, porównując z wynikami pierwszej. Następnie jest stosowana korekta Bonferroniego i za anomalię traktuję tę obserwację (komisję), dla której p-wartość jest mniejsza od 0,05. Podaję też wyniki dla bardzo liberalnego podejścia, w którym nie stosuję żadnej korekty (żeby porównać się z wynikami modelu Def).</p></li>
-<li><p>Model nie wychwytuje wszystkich anomalii, ale tylko takie przypadki, w których wyniki drugiej tury znacząco różnią się od pierwszej. W szczególności nie wykrywa sytuacji, w której oszustwa dokonano w obu turach (wystarczająco konsekwentnie). Oprócz tego niektóre anomalie mogą świadczyć o tym, że to w pierwszej turze popełnione błąd, nie w pierwszej. Natomiast model nie wykrywa tylko anomalii z odwróceniem wyniku (co na pewno miało miejsce np. w komisji nr 95 Krakowie), ale każdy przypadek, w którym wynik nie jest taki, jaki “powinien” być.</p></li>
-<li><p>Reszty z modelu mają rozkład symetryczny. Po usunięciu anomalii (tych, co do których możemy mieć dużą pewność, czyli 42 obserwacji), ich rozkład nie jest normalny, kurtoza jest większa (1,5). Może to wynikać z tego, że w pozostałych obserwacjach o dużych resztach wciąż kryje się wiele takich, które mogą być rezultatem pomyłki lub oszustwa — natomiast pewność co do tego jest mniejsza. Powody mogą być też inne, łącznie z takim, że liniowe przybliżenie zależności z wynikami pierwszej tury jest niewystarczające.</p></li>
-<li><p>Na podstawie modelu można wskazać ograniczoną liczbę anomalii, bo ostatecznie wszystkie reszty muszą się zerować, co wskazywałoby na pełną symetrię. Natomiast nie ma żadnego powodu, żeby ta symetria wystąpiła, gdy analizujemy np. 100 największych reszt.</p></li>
-</ol>
-<p>Poniżej komisje, dla których p-wartość (z korektą Bonferroniego) była mniejsza od 0,05. <em>Reszta_s</em> to reszta studentyzowana, przy pomocy której szukam danych odstających, <em>Różnica_pp</em> to różnica między oficjalnym wynikiem Trzaskowskiego a prognozowanym.</p>
-<div class="cell">
-<div class="cell-output-display">
-<table class="table table-sm table-striped">
-<thead>
-<tr class="header">
-<th style="text-align: left;">Gmina</th>
-<th style="text-align: right;">Komisja</th>
-<th style="text-align: right;">Reszta_s</th>
-<th style="text-align: right;">p-wartość</th>
-<th style="text-align: right;">Różnica_pp</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">gm. Magnuszew</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">20.35</td>
-<td style="text-align: right;">5.92e-87</td>
-<td style="text-align: right;">42.23</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Kraków</td>
-<td style="text-align: right;">95</td>
-<td style="text-align: right;">-16.96</td>
-<td style="text-align: right;">1.00e-59</td>
-<td style="text-align: right;">-35.26</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Strzelce Opolskie</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">-16.79</td>
-<td style="text-align: right;">1.72e-58</td>
-<td style="text-align: right;">-34.92</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Bychawa</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">12.67</td>
-<td style="text-align: right;">2.84e-32</td>
-<td style="text-align: right;">26.42</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Staszów</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">12.47</td>
-<td style="text-align: right;">3.46e-31</td>
-<td style="text-align: right;">26.01</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Tychy</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">-12.27</td>
-<td style="text-align: right;">4.30e-30</td>
-<td style="text-align: right;">-25.59</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Mińsk Mazowiecki</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">-12.17</td>
-<td style="text-align: right;">1.47e-29</td>
-<td style="text-align: right;">-25.38</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Olesno</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">-12.14</td>
-<td style="text-align: right;">2.16e-29</td>
-<td style="text-align: right;">-25.31</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Łódź</td>
-<td style="text-align: right;">157</td>
-<td style="text-align: right;">11.10</td>
-<td style="text-align: right;">3.69e-24</td>
-<td style="text-align: right;">23.16</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Grudziądz</td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">-10.58</td>
-<td style="text-align: right;">1.13e-21</td>
-<td style="text-align: right;">-22.07</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Gdańsk</td>
-<td style="text-align: right;">17</td>
-<td style="text-align: right;">-10.52</td>
-<td style="text-align: right;">1.97e-21</td>
-<td style="text-align: right;">-21.96</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Sępopol</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">10.44</td>
-<td style="text-align: right;">4.66e-21</td>
-<td style="text-align: right;">21.79</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Brześć Kujawski</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">-8.47</td>
-<td style="text-align: right;">7.06e-13</td>
-<td style="text-align: right;">-17.68</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Telatyn</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">8.44</td>
-<td style="text-align: right;">8.63e-13</td>
-<td style="text-align: right;">17.63</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Ostrów Mazowiecka</td>
-<td style="text-align: right;">7</td>
-<td style="text-align: right;">8.20</td>
-<td style="text-align: right;">6.62e-12</td>
-<td style="text-align: right;">17.12</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Bielsko-Biała</td>
-<td style="text-align: right;">30</td>
-<td style="text-align: right;">-7.75</td>
-<td style="text-align: right;">2.42e-10</td>
-<td style="text-align: right;">-16.20</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Grybów</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">7.52</td>
-<td style="text-align: right;">1.54e-09</td>
-<td style="text-align: right;">15.70</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Kłodawa</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">-7.12</td>
-<td style="text-align: right;">2.89e-08</td>
-<td style="text-align: right;">-14.87</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Sadowie</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-6.96</td>
-<td style="text-align: right;">9.44e-08</td>
-<td style="text-align: right;">-14.53</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Bielsko-Biała</td>
-<td style="text-align: right;">61</td>
-<td style="text-align: right;">-6.83</td>
-<td style="text-align: right;">2.34e-07</td>
-<td style="text-align: right;">-14.27</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Kobyłka</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">-6.72</td>
-<td style="text-align: right;">4.88e-07</td>
-<td style="text-align: right;">-14.04</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Kamienna Góra</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">-6.69</td>
-<td style="text-align: right;">5.91e-07</td>
-<td style="text-align: right;">-13.98</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Rychwał</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">6.60</td>
-<td style="text-align: right;">1.08e-06</td>
-<td style="text-align: right;">13.80</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Stanin</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">6.21</td>
-<td style="text-align: right;">1.45e-05</td>
-<td style="text-align: right;">12.97</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Biszcza</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">-6.19</td>
-<td style="text-align: right;">1.60e-05</td>
-<td style="text-align: right;">-12.94</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Ciechocinek</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">5.96</td>
-<td style="text-align: right;">6.74e-05</td>
-<td style="text-align: right;">12.45</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Braniewo</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-5.94</td>
-<td style="text-align: right;">7.56e-05</td>
-<td style="text-align: right;">-12.42</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Choczewo</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">5.94</td>
-<td style="text-align: right;">7.83e-05</td>
-<td style="text-align: right;">12.40</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Barlinek</td>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">5.86</td>
-<td style="text-align: right;">1.20e-04</td>
-<td style="text-align: right;">12.26</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Skarszewy</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">-5.50</td>
-<td style="text-align: right;">1.00e-03</td>
-<td style="text-align: right;">-11.50</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Hajnówka</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">5.47</td>
-<td style="text-align: right;">1.20e-03</td>
-<td style="text-align: right;">11.42</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Gorzów Śląski</td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">5.33</td>
-<td style="text-align: right;">2.66e-03</td>
-<td style="text-align: right;">11.13</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Katowice</td>
-<td style="text-align: right;">47</td>
-<td style="text-align: right;">-5.27</td>
-<td style="text-align: right;">3.65e-03</td>
-<td style="text-align: right;">-11.01</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Złota</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5.26</td>
-<td style="text-align: right;">3.74e-03</td>
-<td style="text-align: right;">11.00</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">gm. Somonino</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">-5.23</td>
-<td style="text-align: right;">4.56e-03</td>
-<td style="text-align: right;">-10.92</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">m. Gliwice</td>
-<td style="text-align: right;">67</td>
-<td style="text-align: right;">-5.21</td>
-<td style="text-align: right;">5.07e-03</td>
-<td style="text-align: right;">-10.88</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Jelenia Góra</td>
-<td style="text-align: right;">46</td>
-<td style="text-align: right;">-5.17</td>
-<td style="text-align: right;">6.22e-03</td>
-<td style="text-align: right;">-10.78</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Przerośl</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5.16</td>
-<td style="text-align: right;">6.46e-03</td>
-<td style="text-align: right;">10.79</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">m. Radom</td>
-<td style="text-align: right;">13</td>
-<td style="text-align: right;">-5.16</td>
-<td style="text-align: right;">6.69e-03</td>
-<td style="text-align: right;">-10.78</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Dębnica Kaszubska</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">5.13</td>
-<td style="text-align: right;">7.63e-03</td>
-<td style="text-align: right;">10.73</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">zagranica</td>
-<td style="text-align: right;">286</td>
-<td style="text-align: right;">-5.12</td>
-<td style="text-align: right;">8.24e-03</td>
-<td style="text-align: right;">-10.65</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">gm. Komańcza</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4.90</td>
-<td style="text-align: right;">2.55e-02</td>
-<td style="text-align: right;">10.24</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Specjalnie pokazuję wszystkie, bo to w jakimś stopniu umożliwia ocenę jakości całego podejścia, natomiast każdej z komisji należałoby się przyjrzeć i być może część wykluczyć po głębszej analizie. Jak widać, ostatnie anomalie to różnice jedynie na poziomie 10 p.p., tak że już tutaj można mieć wątpliwości, czy oficjalne wyniki są nieprawidłowe.</p>
-<p>W sumie 19 anomalii jest na korzyść Trzaskowskiego, 23 na korzyść Nawrockiego. Porównując wartości oficjalne z prognozowanymi (czyli zakładając, że w każdym przypadku doszło do nieprawidłowość i model wskazuje poprawny wynik), Trzaskowski stracił 1750 głosów.</p>
-<p>Moim zdaniem nie można pójść dalej (tzn. wskazywać kolejnych anomalii), ale nawet jeśli to zrobić i nie stosować żadnej korekty na wielokrotne testowanie (czyli bazować na surowej p-wartości), model wskazuje na 1226 podejrzanych komisji: 601 na korzyść Trzaskowskiego i 625 Nawrockiego. Trzaskowski stracił w sumie 382 głosy (czyli w kolejnych “anomaliach” jest bardzo duża symetria, a nawet Nawrocki lekko traci). Choć jak wspomniałem wcześniej, im więcej przypadków rozpatrujemy, tym symetria staje się coraz bardziej wymuszona przez konstrukcję modelu.</p>
-<p>Sprawdziłem to podejście dla innych wyborów prezydenckich: w 2020 roku (zmienna zależna to też wynik Trzaskowskiego) i 2015 (Komorowski). Model dla 2020 jest bardzo podobny: R^2 wynosi 98,8%, średni błąd bezwzględny 1,36 p.p. Zwraca 43 anomalie: 23 na korzyść Trzaskowskiego, 20 na korzyść Dudy (Trzaskowski zyskał przez to 76 głosów).</p>
-<p>Model dla 2015 roku jest słabszy, R^2 wynosi 96,4%, błąd bezwzględny 2,21 p.p. Zwraca 14 anomalii: 11 na korzyść Komorowskiego, 3 Dudy (Komorowski zyskał przez to 1082 głosy).</p>
-</section>
-<section id="dyskusja" class="level3">
-<h3 class="anchored" data-anchor-id="dyskusja">Dyskusja</h3>
-<p>Przy pomocy zaproponowanego podejścia jesteśmy w stanie typować komisje, w których z dużym prawdopodobieństwem oficjalne wyniki nie są prawidłowe. W modelu Def mówienie o prawdopodobieństwie jest utrudnione, wnioskowanie odbywa się na ocenie, czy różnica między oficjalnym wynikiem a symulowanym jest “duża”. Co więcej, w podejściu z resztami istnieją powszechnie przyjęte progi, przy których uzasadnione jest mówić o anomalii. Dodatkowo, ten próg jest dostosowany do jakości modelu. Jeśli jest dokładny, jesteśmy w stanie wykryć więcej anomalii (mamy większą pewność, że konkretna różnica między prognozą a oficjalnym wynikiem to nie jest kwestia przypadku, ale błędu lub oszustwa).</p>
+<p>Uściślę, że wcale nie rekomenduję powyższego podejścia, ale ma to być przykład, co znaczy ustalenie, jak reagować na wyniki modelu. Dodam też, że takie modele są już dostępne, odsyłam np. <a href="https://websites.umich.edu/~wmebane/" target="_blank">tutaj</a>. Natomiast w przypadku polskich wyborów lepsze mogą okazać się inne podejścia.</p>
+<p>Wrócę teraz do modelu Def i porównam go ze swoim. Istotą mojego podejścia jest typowanie komisji, w których z dużym prawdopodobieństwem oficjalne wyniki są nieprawidłowe. Podkreślam tu słowo <em>prawdopodobieństwo</em>, bo w modelu Def mówienie o nim jest utrudnione, a wnioskowanie odbywa się na ocenie, czy różnica między oficjalnym wynikiem a symulowanym jest “duża”. W szczególności, nie jesteśmy w stanie oszacować, ile fałszywie dodatnich wyników powinniśmy się spodziewać. Jeśli wyniki modelu mają być argumentem za tym, że doszło do poważnych naruszeń – takich, które mogły zmienić ogólnopolski wynik — musimy zadbać o to, by fałszywie dodatnich wyników było jak najmniej. Co prawda w niektórych przypadkach możemy sobie pozwolić na większą ich liczbę (np. jeśli mamy inne mocne argumenty, że doszło do fałszerstw), ale w dalszym ciągu powinniśmy mieć <em>kontrolę</em> nad liczbą takich błędów.</p>
+<p>Oprócz tego, w przypadku <em>reszt studentyzowanych</em>, z których korzystam, istnieją powszechnie przyjęte progi, przy których uzasadnione jest mówić o anomalii. Co ważne, ten próg jest dostosowany do jakości modelu. Jeśli jest dokładny, jesteśmy w stanie wykryć więcej anomalii (mamy większą pewność, że konkretna różnica między prognozą a oficjalnym wynikiem to nie jest kwestia przypadku, ale błędu lub oszustwa).</p>
 <p>Drugim problemem z modelem Def (który przy pewnych założeniach może być traktowany jako zaletę, o czym zaraz) jest fakt, że bardzo mocno zależy on od przyjętych parametrów opisujących przepływy, które muszą pochodzić z sondażu. Jeśli nie będą wystarczająco bliskie rzeczywistym, model może zwyczajnie nie działać, wskazując złe komisje. Co gorsza, w konkretnym kierunku, tzn. więcej na korzyść jednego z kandydatów. Moim zdaniem to jest niedopuszczalne.</p>
-<p>Zauważmy też, że tak dużo obserwacji odstających wskazanych przez model Def (ponad 1000) oraz brak symetrii w różnicach między prognozą a rzeczywistą wartości są zwykle w statystyce argumentem za tym, że przyjęto złe założenia. Dlatego takie modele nadają się raczej tylko do wskazywania pojedynczych anomalii.</p>
+<p>Zauważmy też, że tak dużo obserwacji odstających wskazanych przez model Def (ponad 1000) oraz brak symetrii w różnicach między prognozą a rzeczywistymi wartościami są zwykle w statystyce argumentem za tym, że przyjęto złe założenia. Dlatego takie modele nadają się raczej tylko do wskazywania pojedynczych anomalii.</p>
 <p>Dodajmy jednak, że przy założeniu, że przyjęte parametry są poprawne, takie podejście umożliwia wykrycie również systemowych oszustw, w znacznie większej liczbie komisji, niż w moim podejściu. W szczególności można oszacować “prawdziwy” wynik wyborów. Ale nie widzę możliwości, byśmy mogli być wystarczając pewni tego założenia i nie zachęcam do stosowania takiego podejścia.</p>
-<p>Korzystając z modeli typu regresja, mimo że mamy ograniczone możliwości co do liczby wskazanych odstających komisji, wciąż możemy próbować coś powiedzieć o możliwych problemach systemowych, np. na podstawie ogólnych statystyk dotyczących jakości modelu. Oba modele, dla lat 2020 i 2025, mają bardzo wysokie współczynniki R^2 (prawie 99%). Jeśli w kolejnych wyborach taki współczynnik wyniósłby np. 80%, byłoby to niepokojące.</p>
-<p>Na koniec dodajmy, że za anomalię można uznać sam fakt, że np. mocno zmieniła się frekwencja między pierwszą a drugą turą. Mój model w ogóle nie stara się czegoś takiego wykryć, skupiając się na konkretnym rodzaju anomalii: wyniku jednego z kandydatów nie da się wyjaśnić na podstawie wyników pierwszej tury.</p>
-</section>
-</section>
-<section id="artykuł-dr.-kontka" class="level2">
-<h2 class="anchored" data-anchor-id="artykuł-dr.-kontka">Artykuł dr. Kontka</h2>
-<p>Dr. Kontek w swoim <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441" target="_blank">artykule</a> używa dość ciekawej metody detekcji anomalii, opierającej się na założeniu, że w geograficznie bliskich komisjach wyborcy głosują podobnie, a przynajmniej brak jest komisji (w “lokalnej grupie”), która odstawałaby od reszty w sposób naturalny. Mimo że mam duży problem z samym tym założeniem, to przyjmijmy, że ma ono sens.</p>
-<p>Autor zidentyfikował aż 3679 komisji, w których wystąpiły anomalie (a w mniej konserwatywnej wersji nawet 5453). Już te liczby budzą wątpliwości, bo ta druga stanowi 17% wszystkich analizowanych komisji, więc ciężko tu mówić o “anomaliach”. W modelowaniu statystycznym takie liczby świadczą zwykle o problemach z modelem (przyjęcie błędnych założeń). Model, który zwraca tak dużo anomalii, w pewnym sensie nie może być modelem typującym anomalie.</p>
-<p>Skąd tak duże liczby? Autor przyjął tak liberalne kryteria, że nawet lekkie niepodobieństwo skutkuje zakwalifikowaniem wyników w danej komisji jako anomalii, co postaram się wykazać.</p>
-<section id="section" class="level3">
-<h3 class="anchored" data-anchor-id="section">1</h3>
-<p>Grupy komisji zostały tak zdefiniowane, że ich wielkość w większości przypadków zawiera się w przedziale 10-16 (są to więc małe grupy). Dla każdej komisji jest liczona pewna cecha, np. “poparcie dla Nawrockiego”. Jeśli to poparcie jest “nadmiernie” większe, niż w bliskich komisjach, jest to anomalia.</p>
-<p>Według autora, nadmierne poparcie jest wtedy, kiedy po pewnej standaryzacji jest większe od ustalonego progu: 2, 2,5 lub 3 (ten ostatni próg autor traktuje jako “konserwatywne” podejście). Standaryzacja polega na tym, że od wyniku w danej komisji odejmuje się medianę z grupy, a następnie dzieli przez rozrzut w tej grupie, liczony jako MAD (mediana odchyleń bezwzględnych). Jest to alternatywa dla odchylenia standardowego, stosowana czasem dla niesymetrycznych rozkładów. Procedura przypomina zastosowanie tzw. <em>reguły trzech sigm</em>: w standardowym rozkładzie normalnym mamy jedynie ok. 0,13% wartości, które są większe od 3, przez co w niektórych zastosowaniach można takie wartości potraktować jako anomalie.</p>
-<p>Pierwszy problem polega na tym, że ta reguła nie działa dla MAD. Należy przynajmniej uwzględnić, że np. dla rozkładu normalnego MAD jest ok. <a href="https://en.wikipedia.org/wiki/Median_absolute_deviation#Relation_to_standard_deviation" target="_blank">1,5 razy mniejsze od SD</a>. Innymi słowy, rzekomo konserwatywne podejście z progiem 3 wcale takie nie jest, bo de facto jest on równy 2. Takich “odstających” obserwacji jest w rozkładzie normalnym ok. 2%, co daje prawie 700 komisji uznanych za anomalie, mimo że oczywiście takimi nie są. Co więcej, w rzeczywistości rozkład wyników na pewno nie jest normalny, a np. w rozkładzie lognormalnym takich rzekomo odstających komisji będzie 21,5%, czyli prawie 7000.</p>
-<p>Co prawda w pewnych sytuacjach rozkład może być taki, że obserwacji powyżej ustalonego powinno być mniej, w pracy nie ma jednak żadnego uzasadnienia, że mamy do czynienia z taką sytuacją. Autor po prostu przyjmuje sobie pewne liczby (najprawdopodobniej błędnie łącząc je z regułą trzech sigm) i w ogóle tego nie komentuje, co jest niedopuszczalne.</p>
-<p>Istnieje też pewna szansa, że ten współczynnik 1,5 został uwzględniony w obliczeniach (np. w języku R jest stosowany domyślnie), ale w pracy nie ma żadnej wzmianki na ten temat, a w definicji MAD żaden taki parametr nie występuje.</p>
-</section>
-<section id="section-1" class="level3">
-<h3 class="anchored" data-anchor-id="section-1">2</h3>
-<p>Drugi problem polega na tym, że nawet jeśli przyjąć bardziej rygorystyczne podejście (większy próg niż 3), mamy tu do czynienia z tzw. <a href="https://danetyka.com/problem-wielokrotnego-testowania/" target="_blank">problemem porównań wielokrotnych</a>. Z tego właśnie powodu w modelu, który sam zaproponowałem w poprzedniej części, zastosowałem poprawkę na wielokrotne testowanie. Nieuwzględnienie tego problemu jest błędem i autor popełnia go podwójnie. Po pierwsze, dokonuje ponad 30 tysięcy porównań (każda komisja), nie uwzględniając tego faktu w przyjętym progu. Po drugie, sprawdza niezależnie cztery cechy mające świadczyć o anomalii i ostatecznie raportuje wszystkie przypadki, dla których choć jedna z nich miałaby świadczyć o anomalii (tzn. w pracy jest to rozbite, ale wnioski są wyciąganie na podstawie sumy).</p>
-</section>
-<section id="section-2" class="level3">
-<h3 class="anchored" data-anchor-id="section-2">3</h3>
-<p>Spójrzmy jeszcze, jakie cechy bada autor. Jedna z nich jest nazwana “flip” i nie ma nic wspólnego z wyżej podaną standaryzacją i progami. Autor za anomalię uznaje każdy przypadek, w którym “Nawrocki wygrywa lokalnie, mimo że mediana wyników w grupie wskazuje przewagę Trzaskowskiego”. Szczerze mówiąc, ciężko to skomentować. Załóżmy, że procenty poparcia dla Nawrockiego w danej grupie wynoszą: 45, 46, 47, 48, 49, 51, 52, 53, 54. Mediana wynosi 49%, więc “mediana wyników w grupie wskazuje przewagę Trzaskowskiego”, a zatem te cztery (!) komisje, w których Nawrockich otrzymał ponad 50% to anomalie.</p>
-<p>Oczywiście gdyby za anomalie traktować komisje, dla których np. wartości co najmniej trzech cech są odstające, to wtedy uwzględnienie powyższej miałoby sens. Ale jak pisałem, wystarczy jedna. I ta opisywana jest odpowiedzialna za ponad połowę (!) wskazań.</p>
-<p>Dodam, że algorytm wyznacza jedynie anomalie na korzyść Nawrockiego. Nie ma żadnej wzmianki o tym, jakie wyniki otrzymamy, gdyby przeprowadzić podobną analizę na korzyść Trzaskowskiego. Ogólnie nie wiemy, jak powinien wyglądać rozkład liczonych statystyk przy założeniu, że w wyborach nie było żadnych fałszerstw (może właśnie tak, jak wygląda).</p>
-<p>Podsumowując, praca autora miałaby sens tylko w przypadku, gdybyśmy wiedzieli, że wybory zostały sfałszowane na masową skalę (tzn. w bardzo dużej liczbie komisji podano nieprawdziwe wyniki). Wtedy zaprezentowany algorytm mógłby pomóc we wskazaniu komisji, w których miało to miejsce. Ale przecież to jest teza, którą autor chce wykazać.</p>
-</section>
 </section>
 <section id="referencje" class="level2">
 <h2 class="anchored" data-anchor-id="referencje">Referencje</h2>
@@ -3211,7 +2835,6 @@ vertical-align: -.125em;
 <li><a href="https://docs.google.com/document/d/1izIyHST5lFWrMfUTUBwX61najOlty9rIs5uovCNcZYk/mobilebasic" target="_blank">Protest</a></li>
 <li><a href="https://www.cambridge.org/core/journals/political-analysis/article/benfords-law-and-the-detection-of-election-fraud/3B1D64E822371C461AF3C61CE91AAF6D" target="_blank">Benford’s Law and the Detection of Election Fraud</a> (dlaczego prawo Benforda to kiepskie narzędzie do analizy oszustw wyborczych)</li>
 <li><a href="https://defoliator.pl/blog/matematyczne-spojrzenie-na-ii-ture-wyborow-prezydenckich-2025" target="_blank">defoliator.pl</a></li>
-<li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5296441" target="_blank">Dr. Krzysztof Kontek</a></li>
 </ul>
 </section>
 

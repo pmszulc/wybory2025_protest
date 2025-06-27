@@ -1,6 +1,7 @@
 DB/
 pic/
 doc/
+backup/
 
 .Rproj.user
 .Rhistory
